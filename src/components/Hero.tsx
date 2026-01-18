@@ -30,7 +30,7 @@ export default function Hero() {
           </h1>
 
           <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-            FlashMenu transforme l'expérience restaurant. Vos clients scannent, commandent et paient instantanément.
+            Tapzy transforme l'expérience restaurant. Vos clients scannent, commandent et paient instantanément.
             Zéro friction, maximum de satisfaction.
           </p>
 

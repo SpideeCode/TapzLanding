@@ -1,20 +1,38 @@
-import { useState } from 'react';
-import { Mail, MessageSquare, Send, Check } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Mail, MessageSquare, Send, Check, Loader2 } from 'lucide-react';
+import emailjs from '@emailjs/browser';
 import FadeIn from '../components/FadeIn';
 
 export default function Contact() {
-    const [status, setStatus] = useState<'idle' | 'success'>('idle');
+    const form = useRef<HTMLFormElement>(null);
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulate sending
-        const form = e.target as HTMLFormElement;
-        const formData = new FormData(form);
-        const subject = encodeURIComponent(`Contact Tapzy: ${formData.get('name')}`);
-        const body = encodeURIComponent(`Message de: ${formData.get('name')} (${formData.get('email')})\n\n${formData.get('message')}`);
+        if (!form.current) return;
 
-        window.location.href = `mailto:hello@tapzy.io?subject=${subject}&body=${body}`;
-        setStatus('success');
+        setStatus('loading');
+
+        // NOTE: Replace these with your actual EmailJS IDs in .env or hardcoded for testing if acceptable
+        const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+        const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+        const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+        if (!serviceId || !templateId || !publicKey) {
+            console.error('EmailJS keys are missing!');
+            alert('Erreur: Configuration EmailJS manquante. Vérifiez votre fichier .env');
+            setStatus('error');
+            return;
+        }
+
+        try {
+            await emailjs.sendForm(serviceId, templateId, form.current, publicKey);
+            setStatus('success');
+            form.current.reset();
+        } catch (error) {
+            console.error('FAILED...', error);
+            setStatus('error');
+        }
     };
 
     return (
@@ -34,10 +52,7 @@ export default function Contact() {
                                 <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <Check className="w-8 h-8 text-green-500" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-[#EAEAEA] mb-2">Message prêt !</h3>
-                                <p className="text-[#A0A0A0]">
-                                    Votre client mail devrait s'ouvrir. Si ce n'est pas le cas, écrivez-nous directement à <a href="mailto:hello@tapzy.io" className="text-[#3B82F6] hover:underline">hello@tapzy.io</a>.
-                                </p>
+                                <h3 className="text-2xl font-bold text-[#EAEAEA] mb-2">Message envoyé !</h3>
                                 <button
                                     onClick={() => setStatus('idle')}
                                     className="mt-8 text-[#A0A0A0] hover:text-[#EAEAEA] transition-colors"
@@ -46,7 +61,7 @@ export default function Contact() {
                                 </button>
                             </div>
                         ) : (
-                            <form onSubmit={handleSubmit} className="space-y-6">
+                            <form ref={form} onSubmit={handleSubmit} className="space-y-6">
                                 <div>
                                     <label htmlFor="name" className="block text-sm font-medium text-[#A0A0A0] mb-2">
                                         Nom
@@ -97,11 +112,24 @@ export default function Contact() {
 
                                 <button
                                     type="submit"
-                                    className="w-full px-8 py-4 bg-[#3B82F6] text-white rounded-xl font-bold hover:bg-[#2563EB] hover:shadow-lg transition-all flex items-center justify-center gap-2 group"
+                                    disabled={status === 'loading'}
+                                    className="w-full px-8 py-4 bg-[#3B82F6] text-white rounded-xl font-bold hover:bg-[#2563EB] hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
                                 >
-                                    <span>Envoyer le message</span>
-                                    <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    {status === 'loading' ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            <span>Envoi en cours...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>Envoyer le message</span>
+                                            <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
                                 </button>
+                                {status === 'error' && (
+                                    <p className="text-red-400 text-center">Une erreur est survenue, veuillez réessayer.</p>
+                                )}
                             </form>
                         )}
                     </div>
