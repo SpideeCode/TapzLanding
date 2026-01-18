@@ -21,7 +21,7 @@ export default function App() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            {isAuthenticated && (
+            {isAuthenticated ? (
               <>
                 <span className="text-[#EAEAEA]">Bonjour, User</span>
                 <button
@@ -31,6 +31,13 @@ export default function App() {
                   Déconnexion
                 </button>
               </>
+            ) : (
+              <a
+                href="#demo"
+                className="px-6 py-2 bg-[#3B82F6] text-white rounded-full hover:bg-[#2563EB] hover:shadow-lg transition-all hover:scale-105 font-medium"
+              >
+                Démo
+              </a>
             )}
           </div>
         </nav>
@@ -99,7 +106,9 @@ export default function App() {
       </section>
 
       {/* Interactive Demo Section */}
-      <InteractiveDemo />
+      <div id="demo">
+        <InteractiveDemo />
+      </div>
 
       {/* Features */}
       <section className="container mx-auto px-6 py-20">
