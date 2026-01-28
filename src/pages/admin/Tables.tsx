@@ -112,7 +112,7 @@ export const TableManagement: React.FC = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-6">
                     {isSuperAdmin && (
-                        <div className="bg-white border-2 border-slate-50 rounded-2xl px-4 flex items-center gap-2 shadow-sm">
+                        <div className="bg-white border-2 border-slate-200 rounded-2xl px-4 flex items-center gap-2 shadow-sm">
                             <Filter size={18} className="text-gray-400" strokeWidth={2.5} />
                             <select
                                 value={selectedResId}
@@ -141,32 +141,32 @@ export const TableManagement: React.FC = () => {
             {/* Tables Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {tables.map(table => (
-                    <div key={table.id} className="bg-white rounded-[3rem] border-2 border-slate-50 p-8 relative group hover:border-blue-100 transition-all duration-500 flex flex-col items-center shadow-sm overflow-hidden min-h-[340px]">
+                    <div key={table.id} className="bg-white rounded-[3rem] border-2 border-slate-200 p-8 relative group hover:border-blue-600 transition-all duration-500 flex flex-col items-center shadow-sm overflow-hidden min-h-[340px] active:scale-[0.992]">
                         <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                        <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center text-slate-200 mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 group-hover:scale-110 shadow-sm border border-slate-100/50">
+                        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-200 mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 group-hover:scale-110 shadow-sm border-2 border-slate-100/50 relative z-10">
                             <QrCode size={36} strokeWidth={1.5} />
                         </div>
 
-                        <h3 className="text-4xl font-black text-slate-900 italic tracking-tighter mb-2 uppercase">TABLE {table.table_number}</h3>
-                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-8 text-center px-4 leading-tight opacity-60">REF: {table.id.slice(0, 8)}</p>
+                        <h3 className="text-4xl font-black text-slate-900 italic tracking-tighter mb-2 uppercase relative z-10">TABLE {table.table_number}</h3>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-10 text-center px-4 leading-tight relative z-10">REF: <span className="text-slate-900 opacity-60">#{table.id.slice(0, 8)}</span></p>
 
-                        <div className="mt-auto w-full pt-8 border-t border-slate-50 flex gap-3 z-10">
+                        <div className="mt-auto w-full pt-8 flex gap-3 z-10">
                             <button
                                 onClick={() => {
                                     setEditingTable(table);
                                     setTableNumber(table.table_number);
                                     setShowModal(true);
                                 }}
-                                className="flex-1 py-3 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-slate-100"
+                                className="flex-1 py-3.5 bg-slate-900 text-white hover:bg-black rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/10 active:scale-95"
                             >
                                 <Edit2 size={13} strokeWidth={3} /> ÉDITER
                             </button>
                             <button
                                 onClick={() => handleDelete(table.id)}
-                                className="flex-1 py-3 bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-slate-100"
+                                className="px-4 py-3.5 bg-white text-red-600 hover:bg-red-50 rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 border-2 border-slate-200 hover:border-red-100 active:scale-95"
                             >
-                                <Trash2 size={13} strokeWidth={3} /> SUPPR.
+                                <Trash2 size={14} strokeWidth={3} />
                             </button>
                         </div>
 

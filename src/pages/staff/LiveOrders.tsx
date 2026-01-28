@@ -84,9 +84,9 @@ export const LiveOrders: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <div className="bg-white px-8 py-5 rounded-[2rem] border-2 border-slate-50 shadow-sm relative overflow-hidden group">
+                    <div className="bg-white px-8 py-5 rounded-[2rem] border-2 border-slate-200 shadow-sm relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-full -mr-12 -mt-12 transition-transform duration-500 group-hover:scale-110" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 block mb-1 relative z-10">À traiter</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-1 relative z-10">À traiter</span>
                         <span className="text-3xl font-black italic text-slate-900 relative z-10">{getOrdersByStatus('pending').length + getOrdersByStatus('preparing').length}</span>
                     </div>
                 </div>
@@ -97,12 +97,12 @@ export const LiveOrders: React.FC = () => {
                     <div key={col.id} className="flex flex-col min-h-0">
                         <div className="flex items-center justify-between mb-8 px-4">
                             <div className="flex items-center gap-4">
-                                <div className={`p-3 rounded-2xl ${col.bg.replace('10', '50')} ${col.color} border-2 ${col.border.replace('20', '50')} shadow-sm`}>
+                                <div className={`p-3 rounded-2xl ${col.bg.replace('10', '50')} ${col.color} border-2 border-slate-200 shadow-sm`}>
                                     <col.icon size={20} strokeWidth={3} />
                                 </div>
                                 <h2 className="text-2xl font-black italic uppercase tracking-tighter text-slate-900">{col.name}</h2>
                             </div>
-                            <span className="bg-gray-100 px-4 py-1.5 rounded-full text-[10px] font-black text-slate-900 shadow-sm border border-white">
+                            <span className="bg-slate-900 px-4 py-1.5 rounded-full text-[10px] font-black text-white shadow-lg border border-slate-900">
                                 {getOrdersByStatus(col.id).length}
                             </span>
                         </div>
@@ -111,26 +111,26 @@ export const LiveOrders: React.FC = () => {
                             {getOrdersByStatus(col.id).map((order) => (
                                 <div
                                     key={order.id}
-                                    className="bg-white rounded-[3rem] border-2 border-slate-50 shadow-sm group hover:border-blue-100 transition-all duration-300 relative overflow-hidden"
+                                    className="bg-white rounded-[3rem] border-2 border-slate-200 shadow-sm group hover:border-blue-600 transition-all duration-300 relative overflow-hidden active:scale-[0.99]"
                                 >
                                     {/* Card Header */}
-                                    <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                                    <div className="p-8 border-b-2 border-slate-50 flex items-center justify-between bg-slate-50/50">
                                         <div className="flex items-center gap-5">
-                                            <div className="bg-white text-slate-900 w-16 h-16 rounded-[1.5rem] flex flex-col items-center justify-center border-2 border-slate-50 shadow-sm group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-all duration-300">
+                                            <div className="bg-white text-slate-900 w-16 h-16 rounded-[1.5rem] flex flex-col items-center justify-center border-2 border-slate-200 shadow-sm group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-all duration-300">
                                                 <span className="text-[8px] font-black uppercase tracking-widest opacity-40 leading-none mb-1">Table</span>
                                                 <span className="text-2xl font-black italic leading-none">{order.tables?.table_number || '??'}</span>
                                             </div>
                                             <div>
-                                                <div className="flex items-center gap-2 text-gray-400 mb-1">
+                                                <div className="flex items-center gap-2 text-slate-400 mb-1">
                                                     <Clock size={12} strokeWidth={3} />
                                                     <span className="text-[10px] font-black uppercase tracking-widest">
                                                         {formatDistanceToNow(new Date(order.created_at), { addSuffix: true, locale: fr })}
                                                     </span>
                                                 </div>
-                                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest opacity-60">#{order.id.slice(0, 8)}</span>
+                                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">#{order.id.slice(0, 8)}</span>
                                             </div>
                                         </div>
-                                        <button className="p-3 text-gray-200 hover:text-slate-900 transition-colors bg-white rounded-xl shadow-sm border border-slate-50">
+                                        <button className="p-3 text-slate-300 hover:text-slate-900 transition-colors bg-white rounded-xl shadow-sm border-2 border-slate-100">
                                             <MoreHorizontal size={20} strokeWidth={2.5} />
                                         </button>
                                     </div>
@@ -140,7 +140,7 @@ export const LiveOrders: React.FC = () => {
                                         {order.order_items.map((item) => (
                                             <div key={item.id} className="flex items-center justify-between group/item">
                                                 <div className="flex items-center gap-5">
-                                                    <div className="w-10 h-10 rounded-2xl bg-gray-50 flex items-center justify-center font-black text-sm text-slate-900 border border-slate-100 shadow-inner group-hover/item:border-blue-100 group-hover/item:bg-blue-50 transition-colors">
+                                                    <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center font-black text-sm text-slate-900 border-2 border-slate-100 shadow-sm group-hover/item:border-blue-600 transition-colors">
                                                         {item.quantity}
                                                     </div>
                                                     <span className="text-sm font-black text-slate-900 uppercase tracking-tight leading-tight italic">{item.items.name}</span>

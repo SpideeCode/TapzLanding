@@ -184,9 +184,9 @@ export const MenuManagement: React.FC = () => {
                 {/* Categories Section */}
                 <div className="lg:col-span-1 space-y-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-black flex items-center space-x-2 text-gray-900">
-                            <LayoutGrid size={22} className="text-blue-600" strokeWidth={2.5} />
-                            <span>Catégories</span>
+                        <h2 className="text-xl font-black flex items-center space-x-3 text-slate-900 italic tracking-tight">
+                            <LayoutGrid size={22} className="text-blue-600 not-italic" strokeWidth={2.5} />
+                            <span className="uppercase">Catégories</span>
                         </h2>
                         <button
                             onClick={() => {
@@ -194,35 +194,35 @@ export const MenuManagement: React.FC = () => {
                                 setCatName('');
                                 setShowCatModal(true);
                             }}
-                            className="p-1.5 rounded-xl transition-colors hover:bg-blue-50 text-blue-600"
+                            className="p-1.5 rounded-xl transition-all hover:bg-blue-600 hover:text-white text-blue-600 border-2 border-transparent hover:border-blue-600"
                         >
                             <Plus size={22} strokeWidth={2.5} />
                         </button>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y">
+                    <div className="bg-white rounded-[2rem] border-2 border-slate-200 shadow-sm divide-y-2 divide-slate-100 overflow-hidden">
                         {loading ? (
-                            <div className="p-4 text-center text-gray-400 text-sm">Chargement...</div>
+                            <div className="p-8 text-center text-slate-400 text-sm font-bold italic">Actions en cours...</div>
                         ) : categories.length === 0 ? (
-                            <div className="p-4 text-center text-gray-400 text-sm italic">Aucune catégorie.</div>
+                            <div className="p-8 text-center text-slate-400 text-sm font-bold italic uppercase tracking-widest">Aucune catégorie.</div>
                         ) : (
                             categories.map((cat: Category) => (
-                                <div key={cat.id} className="p-4 flex items-center justify-between group hover:bg-gray-50 transition-all cursor-pointer">
-                                    <span className="font-bold text-gray-700">{cat.name}</span>
-                                    <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div key={cat.id} className="p-5 flex items-center justify-between group hover:bg-slate-50 transition-all cursor-pointer">
+                                    <span className="font-black text-slate-900 italic uppercase tracking-tight">{cat.name}</span>
+                                    <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button
                                             onClick={() => {
                                                 setEditingCat(cat);
                                                 setCatName(cat.name);
                                                 setShowCatModal(true);
                                             }}
-                                            className="p-1.5 text-gray-400 rounded-lg hover:text-blue-600 hover:bg-blue-50"
+                                            className="p-2 text-slate-400 rounded-xl hover:text-blue-600 hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-blue-100"
                                         >
                                             <Edit2 size={16} strokeWidth={2.5} />
                                         </button>
                                         <button
                                             onClick={() => handleDeleteCategory(cat.id)}
-                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-white hover:ring-2 hover:ring-red-100 rounded-xl transition-all"
                                         >
                                             <Trash2 size={16} strokeWidth={2.5} />
                                         </button>
@@ -236,9 +236,9 @@ export const MenuManagement: React.FC = () => {
                 {/* Items Section */}
                 <div className="lg:col-span-2 space-y-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-black flex items-center space-x-2 text-gray-900">
-                            <List size={22} className="text-blue-600" strokeWidth={2.5} />
-                            <span>Plats & Articles</span>
+                        <h2 className="text-xl font-black flex items-center space-x-3 text-slate-900 italic tracking-tight">
+                            <List size={22} className="text-blue-600 not-italic" strokeWidth={2.5} />
+                            <span className="uppercase">Plats & Articles</span>
                         </h2>
                         <button
                             onClick={() => {
@@ -248,64 +248,68 @@ export const MenuManagement: React.FC = () => {
                                 setItemCatId(categories[0]?.id || '');
                                 setShowItemModal(true);
                             }}
-                            className="px-4 py-2 rounded-2xl text-sm font-bold transition-all flex items-center space-x-2 shadow-lg active:scale-95 bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/10">
+                            className="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center space-x-2 shadow-xl active:scale-95 bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/20">
                             <Plus size={18} strokeWidth={3} />
                             <span>Nouveau Plat</span>
                         </button>
                     </div>
 
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-gray-50 border-b">
-                                    <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Nom</th>
-                                    <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Catégorie</th>
-                                    <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Prix</th>
-                                    <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {loading ? (
-                                    <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-400">Chargement...</td></tr>
-                                ) : items.length === 0 ? (
-                                    <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-400">Aucun plat configuré.</td></tr>
-                                ) : (
-                                    items.map((item: Item) => (
-                                        <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-6 py-4 font-bold text-gray-900">{item.name}</td>
-                                            <td className="px-6 py-4 text-sm font-bold text-gray-500">
-                                                <span className="bg-gray-100 px-2.5 py-1 rounded-lg border border-gray-200">
-                                                    {categories.find((c: Category) => c.id === item.category_id)?.name || 'Inconnue'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 font-black text-gray-900 text-base">
-                                                <span className="text-blue-600">{item.price} €</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingItem(item);
-                                                        setItemName(item.name);
-                                                        setItemPrice(item.price.toString());
-                                                        setItemCatId(item.category_id);
-                                                        setShowItemModal(true);
-                                                    }}
-                                                    className="text-gray-400 p-1.5 rounded-lg mr-2 transition-all hover:text-blue-600 hover:bg-blue-50"
-                                                >
-                                                    <Edit2 size={16} strokeWidth={2.5} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteItem(item.id)}
-                                                    className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-all"
-                                                >
-                                                    <Trash2 size={16} strokeWidth={2.5} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                    <div className="bg-white rounded-[2rem] border-2 border-slate-200 shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b-2 border-slate-100">
+                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Nom</th>
+                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Catégorie</th>
+                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Prix</th>
+                                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {loading ? (
+                                        <tr><td colSpan={4} className="px-8 py-12 text-center text-slate-400 font-bold italic italic">Flux en cours...</td></tr>
+                                    ) : items.length === 0 ? (
+                                        <tr><td colSpan={4} className="px-8 py-12 text-center text-slate-400 font-bold italic uppercase tracking-widest">Aucun plat configuré.</td></tr>
+                                    ) : (
+                                        items.map((item: Item) => (
+                                            <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
+                                                <td className="px-8 py-5 font-black text-slate-900 uppercase tracking-tight text-sm italic">{item.name}</td>
+                                                <td className="px-8 py-5">
+                                                    <span className="bg-slate-900 px-3 py-1 rounded-lg text-white text-[9px] font-black uppercase tracking-widest shadow-md">
+                                                        {categories.find((c: Category) => c.id === item.category_id)?.name || 'Inconnue'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-5 font-black text-slate-900 text-lg tracking-tighter italic">
+                                                    <span className="text-blue-600">{item.price} €</span>
+                                                </td>
+                                                <td className="px-8 py-5 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingItem(item);
+                                                                setItemName(item.name);
+                                                                setItemPrice(item.price.toString());
+                                                                setItemCatId(item.category_id);
+                                                                setShowItemModal(true);
+                                                            }}
+                                                            className="text-slate-400 p-2.5 rounded-xl transition-all hover:text-blue-600 hover:bg-white hover:shadow-md border border-transparent hover:border-blue-100"
+                                                        >
+                                                            <Edit2 size={16} strokeWidth={2.5} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteItem(item.id)}
+                                                            className="text-slate-400 hover:text-red-600 hover:bg-white hover:ring-2 hover:ring-red-100 p-2.5 rounded-xl transition-all"
+                                                        >
+                                                            <Trash2 size={16} strokeWidth={2.5} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

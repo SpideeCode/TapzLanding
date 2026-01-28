@@ -83,15 +83,15 @@ export const AdminDashboardOverview: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {statCards.map((stat) => (
-                    <div key={stat.label} className="bg-white p-8 rounded-[2.5rem] border-2 border-slate-50 shadow-sm relative overflow-hidden group hover:border-blue-100 transition-all duration-500">
+                    <div key={stat.label} className="bg-white p-8 rounded-[2.5rem] border-2 border-slate-200 shadow-sm relative overflow-hidden group hover:border-blue-600 transition-all duration-500 active:scale-[0.98]">
                         <div className="relative z-10">
-                            <div className={`${stat.bg} ${stat.color} p-4 rounded-2xl w-fit mb-6 shadow-sm`}>
+                            <div className={`${stat.bg} ${stat.color} p-4 rounded-2xl w-fit mb-6 shadow-sm border-2 border-white group-hover:bg-blue-600 group-hover:text-white transition-all duration-300`}>
                                 <stat.icon size={28} strokeWidth={2.5} />
                             </div>
-                            <p className="text-gray-400 font-black text-[10px] uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-                            <h3 className="text-5xl font-black text-slate-900 tracking-tighter">
+                            <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] mb-1">{stat.label}</p>
+                            <h3 className="text-5xl font-black text-slate-900 tracking-tighter italic">
                                 {loading ? (
-                                    <div className="h-10 w-20 bg-gray-50 animate-pulse rounded-lg mt-2" />
+                                    <div className="h-10 w-20 bg-slate-50 animate-pulse rounded-lg mt-2" />
                                 ) : stat.value}
                             </h3>
                         </div>
@@ -100,20 +100,20 @@ export const AdminDashboardOverview: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white p-10 rounded-[3rem] border-2 border-slate-50 shadow-sm">
+                <div className="lg:col-span-2 bg-white p-10 rounded-[3rem] border-2 border-slate-200 shadow-sm">
                     <div className="flex items-center justify-between mb-10">
                         <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3 italic">
                             <TrendingUp size={24} className="text-blue-600 not-italic" />
                             COMMANDES RÉCENTES
                         </h3>
                         <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline decoration-2 underline-offset-4">
-                            Voir Tout le flux
+                            Tout voir
                         </button>
                     </div>
 
                     <div className="space-y-6">
-                        <div className="py-20 text-center bg-gray-50/50 rounded-[2rem] border-2 border-dashed border-slate-100">
-                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                        <div className="py-20 text-center bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border-2 border-white">
                                 <ShoppingBag className="text-slate-300" size={32} />
                             </div>
                             <p className="text-slate-400 font-bold italic text-sm">En attente de vos premières commandes...</p>
@@ -131,10 +131,10 @@ export const AdminDashboardOverview: React.FC = () => {
                         </button>
                     </div>
 
-                    <div className="bg-white p-10 rounded-[3rem] border-2 border-slate-50 shadow-sm relative overflow-hidden">
+                    <div className="bg-white p-10 rounded-[3rem] border-2 border-slate-200 shadow-sm relative overflow-hidden">
                         <h3 className="text-xl font-black text-slate-900 mb-4 tracking-tight uppercase">Support Client</h3>
-                        <p className="text-gray-400 text-sm font-bold leading-relaxed mb-8 italic">Besoin d'aide pour configurer votre établissement ? Nos experts sont là 24/7.</p>
-                        <button className="w-full py-4 rounded-2xl border-2 border-slate-100 font-black text-[10px] uppercase tracking-widest text-slate-600 hover:bg-gray-50 transition-all">
+                        <p className="text-slate-400 text-sm font-bold leading-relaxed mb-8 italic">Besoin d'aide pour configurer votre établissement ? Nos experts sont là 24/7.</p>
+                        <button className="w-full py-4 rounded-2xl border-2 border-slate-200 font-black text-[10px] uppercase tracking-widest text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all">
                             Contacter l'aide
                         </button>
                     </div>

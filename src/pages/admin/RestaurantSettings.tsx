@@ -106,10 +106,10 @@ export const RestaurantSettings: React.FC = () => {
 
             <form onSubmit={handleSave} className="grid grid-cols-1 gap-12">
                 {/* Visual Identity Section */}
-                <div className="bg-white rounded-[3rem] border-2 border-slate-50 p-10 space-y-10 shadow-sm relative overflow-hidden">
+                <div className="bg-white rounded-[3rem] border-2 border-slate-200 p-10 space-y-10 shadow-sm relative overflow-hidden active:focus-within:border-blue-600 transition-colors duration-500">
                     <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-50 rounded-full blur-3xl pointer-events-none opacity-50" />
 
-                    <div className="flex items-center gap-4 border-b border-gray-50 pb-8">
+                    <div className="flex items-center gap-4 border-b-2 border-slate-100 pb-8">
                         <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-500/20">
                             <Camera size={24} strokeWidth={2.5} />
                         </div>
@@ -117,7 +117,7 @@ export const RestaurantSettings: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-10 items-start">
-                        <div className="w-32 h-32 bg-gray-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 border-2 border-dashed border-slate-100 shrink-0 overflow-hidden group shadow-inner">
+                        <div className="w-32 h-32 bg-slate-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 border-2 border-dashed border-slate-200 shrink-0 overflow-hidden group shadow-inner">
                             {logoUrl ? (
                                 <img src={logoUrl} alt="Logo preview" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                             ) : (
@@ -125,23 +125,23 @@ export const RestaurantSettings: React.FC = () => {
                             )}
                         </div>
                         <div className="flex-1 space-y-4 w-full">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 italic">URL de votre logo</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 italic">URL de votre logo</label>
                             <input
                                 type="url"
                                 value={logoUrl}
                                 onChange={(e) => setLogoUrl(e.target.value)}
-                                className="w-full bg-white border-2 border-slate-50 rounded-[1.5rem] py-4 px-8 text-slate-900 font-bold focus:outline-none focus:border-blue-100 transition-all placeholder:text-gray-300 shadow-sm"
+                                className="w-full bg-white border-2 border-slate-200 rounded-[1.5rem] py-4 px-8 text-slate-900 font-bold focus:outline-none focus:border-blue-600 transition-all placeholder:text-gray-300 shadow-sm"
                                 placeholder="https://votre-site.com/logo.png"
                             />
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-4 italic">Format recommandé: PNG ou SVG (carré) avec fond transparent</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-4 italic">Format recommandé: PNG ou SVG (carré) avec fond transparent</p>
                         </div>
                     </div>
                 </div>
 
                 {/* General Info Section */}
-                <div className="bg-white rounded-[3rem] border-2 border-slate-50 p-10 space-y-10 shadow-sm relative overflow-hidden">
-                    <div className="flex items-center gap-4 border-b border-gray-50 pb-8">
-                        <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-blue-600 border border-slate-100">
+                <div className="bg-white rounded-[3rem] border-2 border-slate-200 p-10 space-y-10 shadow-sm relative overflow-hidden">
+                    <div className="flex items-center gap-4 border-b-2 border-slate-100 pb-8">
+                        <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-blue-600 border-2 border-white shadow-sm">
                             <Store size={24} strokeWidth={2.5} />
                         </div>
                         <h2 className="text-xl font-black text-slate-900 italic tracking-tight uppercase">Informations Générales</h2>
@@ -149,30 +149,30 @@ export const RestaurantSettings: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div className="space-y-4">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 italic">Nom de l'établissement</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 italic">Nom de l'établissement</label>
                             <input
                                 type="text"
                                 required
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full bg-white border-2 border-slate-50 rounded-[1.5rem] py-5 px-8 text-slate-900 text-lg font-black italic focus:outline-none focus:border-blue-100 transition-all shadow-sm"
+                                className="w-full bg-white border-2 border-slate-200 rounded-[1.5rem] py-5 px-8 text-slate-900 text-lg font-black italic focus:outline-none focus:border-blue-600 transition-all shadow-sm"
                                 placeholder="Ex: L'Atelier Gourmand"
                             />
                         </div>
                         <div className="space-y-4">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 italic">Lien d'accès (Slug)</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 italic">Lien d'accès (Slug)</label>
                             <div className="relative">
-                                <span className="absolute left-8 top-1/2 -translate-y-1/2 text-gray-300 font-black text-xl italic select-none">/</span>
+                                <span className="absolute left-8 top-1/2 -translate-y-1/2 text-slate-300 font-black text-xl italic select-none">/</span>
                                 <input
                                     type="text"
                                     required
                                     value={slug}
                                     onChange={(e) => setSlug(e.target.value)}
-                                    className="w-full bg-white border-2 border-slate-50 rounded-[1.5rem] py-5 pl-12 pr-8 text-blue-600 text-lg font-black italic focus:outline-none focus:border-blue-100 transition-all shadow-sm"
+                                    className="w-full bg-white border-2 border-slate-200 rounded-[1.5rem] py-5 pl-12 pr-8 text-slate-900 text-lg font-black italic focus:outline-none focus:border-blue-600 transition-all shadow-sm"
                                     placeholder="nom-du-resto"
                                 />
                             </div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-4 italic">Utilisé pour l'URL de votre menu digital</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-4 italic">Utilisé pour l'URL de votre menu digital</p>
                         </div>
                     </div>
                 </div>
