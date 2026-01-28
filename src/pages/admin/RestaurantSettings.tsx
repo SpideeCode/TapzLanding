@@ -23,6 +23,7 @@ export const RestaurantSettings: React.FC = () => {
     const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [savingPin, setSavingPin] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     // Form fields
@@ -52,6 +53,37 @@ export const RestaurantSettings: React.FC = () => {
         fetchRestaurant();
     }, []);
 
+    const handleSavePin = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (!restaurant) return;
+
+        console.log('Attempting to save PIN:', { id: restaurant.id, code: staffCode });
+        setSavingPin(true);
+        setMessage(null);
+
+        try {
+            console.log('Calling RPC update_staff_access_code with:', staffCode);
+            const { data, error } = await supabase.rpc('update_staff_access_code', {
+                new_code: staffCode || null
+            });
+
+            if (error) throw error;
+
+            console.log('RPC Result:', data);
+
+            if (data && !data.success) {
+                throw new Error(data.message || 'Erreur inconnue');
+            }
+
+            setMessage({ type: 'success', text: 'Code PIN mis à jour avec succès !' });
+        } catch (error: any) {
+            console.error('Error saving PIN:', error);
+            setMessage({ type: 'error', text: error.message || 'Erreur lors de la mise à jour du PIN.' });
+        } finally {
+            setSavingPin(false);
+        }
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!restaurant) return;
@@ -65,8 +97,7 @@ export const RestaurantSettings: React.FC = () => {
                 .update({
                     name,
                     slug: slug.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
-                    logo_url: logoUrl || null,
-                    staff_access_code: staffCode || null
+                    logo_url: logoUrl || null
                 })
                 .eq('id', restaurant.id);
 
@@ -191,7 +222,7 @@ export const RestaurantSettings: React.FC = () => {
                         <h2 className="text-xl font-black text-slate-900 italic tracking-tight uppercase">Accès Staff</h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-end">
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 italic">Code PIN (4-6 chiffres)</label>
                             <input
@@ -203,6 +234,17 @@ export const RestaurantSettings: React.FC = () => {
                                 placeholder="1234"
                             />
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-4 italic">Code utilisé par vos serveurs pour se connecter</p>
+                        </div>
+                        <div className="pb-4">
+                            <button
+                                onClick={handleSavePin}
+                                disabled={savingPin}
+                                type="button"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-5 rounded-[2rem] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
+                            >
+                                {savingPin ? '...' : 'Enregistrer le Code'}
+                                {!savingPin && <Lock size={16} strokeWidth={2.5} />}
+                            </button>
                         </div>
                     </div>
                 </div>

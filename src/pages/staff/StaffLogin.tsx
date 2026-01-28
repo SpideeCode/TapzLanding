@@ -16,9 +16,10 @@ export const StaffLogin = () => {
         setError('');
 
         try {
+            console.log('Verifying access for:', { slug, code: code.trim() });
             const { data, error: rpcError } = await supabase.rpc('verify_staff_access', {
-                input_slug: slug,
-                input_code: code
+                input_slug: slug?.toLowerCase(),
+                input_code: code.trim()
             });
 
             if (rpcError) throw rpcError;
@@ -51,6 +52,9 @@ export const StaffLogin = () => {
                         <Utensils size={32} strokeWidth={2.5} />
                     </div>
                     <h1 className="text-3xl font-black text-slate-900 italic tracking-tighter mb-2">ACCÈS STAFF</h1>
+                    <div className="flex items-center gap-2 mb-2 bg-slate-100 px-3 py-1 rounded-full">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{slug}</span>
+                    </div>
                     <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Connectez-vous à votre espace</p>
                 </div>
 
