@@ -65,17 +65,24 @@ export const useStaffOrders = (restaurantId: string) => {
 
         fetchOrders();
 
-        // Audio notification setup
+        // 1. POLLING FALLBACK (Every 30 seconds)
+        // This ensures that even if websockets fail, data is refreshed regularly in the background
+        console.log(`[Polling] Setting up 30s fallback for: ${restaurantId}`);
+        const pollingInterval = setInterval(() => {
+            console.log('[Polling] Background refresh...');
+            fetchOrders();
+        }, 30000);
+
+        // 2. AUDIO NOTIFICATION SETUP
         const playNotification = () => {
             const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
             audio.volume = 0.5;
             audio.play().catch(e => console.log('Audio play failed (waiting for interaction):', e));
         };
 
+        // 3. REALTIME SUBSCRIPTION
         console.log(`[Realtime] Initializing subscription for: ${restaurantId}`);
 
-        // We use a broader subscription and filter in code if needed, 
-        // but Supabase filter should work if REPLICA IDENTITY FULL is set.
         const channel = supabase
             .channel(`staff-orders-${restaurantId}`)
             .on(
@@ -130,7 +137,8 @@ export const useStaffOrders = (restaurantId: string) => {
             .subscribe();
 
         return () => {
-            console.log(`[Realtime] Cleaning up for: ${restaurantId}`);
+            console.log(`[Cleanup] Stopping polling and subscriptions for: ${restaurantId}`);
+            clearInterval(pollingInterval);
             supabase.removeChannel(channel);
             supabase.removeChannel(itemsChannel);
         };
