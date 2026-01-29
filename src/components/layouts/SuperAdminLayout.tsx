@@ -33,6 +33,7 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({ children }) 
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
+        window.location.href = '/login';
     };
 
     return (

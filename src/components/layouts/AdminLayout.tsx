@@ -10,7 +10,8 @@ import {
     Settings,
     Coffee,
     Utensils,
-    QrCode
+    QrCode,
+    Store
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -29,15 +30,31 @@ const navigation = [
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
     const location = useLocation();
+
+    React.useEffect(() => {
+        const getSlug = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase.from('profiles').select('restaurant_id').eq('id', user.id).single();
+                if (profile?.restaurant_id) {
+                    const { data: rest } = await supabase.from('restaurants').select('slug').eq('id', profile.restaurant_id).single();
+                    if (rest) setRestaurantSlug(rest.slug);
+                }
+            }
+        };
+        getSlug();
+    }, []);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
+        window.location.href = '/login'; // Force full reload/redirect
     };
 
     return (
         <div className="min-h-screen bg-white text-slate-900 flex font-sans selection:bg-blue-500/30">
-            {/* Mobile sidebar overlay */}
+            {/* ... (keep mobile overlay) ... */}
             {sidebarOpen && (
                 <div
                     className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
@@ -76,6 +93,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Menu Principal</span>
                         </div>
                         {navigation.map((item) => {
+                            if (item.name === 'Paramètres') return null; // Skip Settings here to render later
                             const isActive = location.pathname === item.href;
                             return (
                                 <Link
@@ -98,6 +116,41 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                 </Link>
                             );
                         })}
+
+                        {/* Button "Voir mon Restaurant" */}
+                        {restaurantSlug && (
+                            <a
+                                href={`/m/${restaurantSlug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center space-x-3 px-4 py-3.5 rounded-2xl transition-all duration-300 group text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 font-semibold mt-4"
+                            >
+                                <div className="p-1.5 rounded-lg transition-colors bg-transparent group-hover:bg-emerald-100/50">
+                                    <Store size={18} strokeWidth={2} />
+                                </div>
+                                <span className="tracking-tight">Voir mon Restaurant</span>
+                            </a>
+                        )}
+
+                        {/* Paramètres (Settings) explicitly rendered at bottom */}
+                        <Link
+                            to="/admin/settings"
+                            className={`
+                                flex items-center space-x-3 px-4 py-3.5 rounded-2xl transition-all duration-300 group mt-2
+                                ${location.pathname === '/admin/settings'
+                                    ? 'bg-blue-600 text-white font-bold shadow-xl shadow-blue-500/20'
+                                    : 'text-slate-600 hover:bg-gray-50 hover:text-blue-600 font-semibold'}
+                            `}
+                        >
+                            <div className={`
+                                p-1.5 rounded-lg transition-colors
+                                ${location.pathname === '/admin/settings' ? 'bg-white/20' : 'bg-transparent group-hover:bg-blue-50'}
+                            `}>
+                                <Settings size={18} strokeWidth={location.pathname === '/admin/settings' ? 3 : 2} />
+                            </div>
+                            <span className="tracking-tight">Paramètres</span>
+                        </Link>
+
                     </nav>
 
                     {/* User Profile / Logout */}

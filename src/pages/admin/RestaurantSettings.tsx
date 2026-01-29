@@ -259,11 +259,11 @@ export const RestaurantSettings: React.FC = () => {
                     <div className="relative z-10">
                         <h3 className="text-[10px] font-black text-blue-100 uppercase tracking-[0.2em] mb-2">Lien public de votre menu :</h3>
                         <p className="text-2xl font-black text-white italic tracking-tighter">
-                            tapzy.app/{slug || '...'}
+                            tapzy.app/m/{slug || '...'}
                         </p>
                     </div>
                     <a
-                        href={`/menu/${slug}`}
+                        href={`/m/${slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="ml-auto w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-white hover:bg-white hover:text-blue-600 transition-all active:scale-90 relative z-10 border border-white/20"

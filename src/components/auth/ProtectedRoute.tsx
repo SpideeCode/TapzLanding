@@ -82,6 +82,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     }
 
     if (!authorized) {
+        // Redirect to login if not authorized. 
+        // We replace the history entry to avoid back-button loops.
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 

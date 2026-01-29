@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plus, Filter, LayoutGrid, List, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Filter, LayoutGrid, List, Edit2, Trash2, ExternalLink } from 'lucide-react';
 
 interface Restaurant {
     id: string;
     name: string;
+    slug: string;
 }
 
 interface Category {
@@ -52,7 +53,8 @@ export const MenuManagement: React.FC = () => {
                 setUserProfile(profile);
 
                 if (profile?.role === 'superadmin') {
-                    const { data: resData } = await supabase.from('restaurants').select('id, name');
+                    // Fetch slug as well
+                    const { data: resData } = await supabase.from('restaurants').select('id, name, slug');
                     setRestaurants(resData || []);
                     if (resData && resData.length > 0) setSelectedResId(resData[0].id);
                 } else if (profile?.restaurant_id) {
@@ -155,6 +157,7 @@ export const MenuManagement: React.FC = () => {
     };
 
     const isSuperAdmin = userProfile?.role === 'superadmin';
+    const selectedRestaurant = restaurants.find(r => r.id === selectedResId);
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -165,17 +168,32 @@ export const MenuManagement: React.FC = () => {
                 </div>
 
                 {isSuperAdmin && (
-                    <div className="flex items-center space-x-3 bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
-                        <Filter size={18} className="text-gray-400 ml-2" />
-                        <select
-                            value={selectedResId}
-                            onChange={(e) => setSelectedResId(e.target.value)}
-                            className="bg-transparent border-none focus:ring-0 text-sm font-semibold text-gray-700 pr-8"
-                        >
-                            {restaurants.map(res => (
-                                <option key={res.id} value={res.id}>{res.name}</option>
-                            ))}
-                        </select>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center space-x-3 bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
+                            <Filter size={18} className="text-gray-400 ml-2" />
+                            <select
+                                value={selectedResId}
+                                onChange={(e) => setSelectedResId(e.target.value)}
+                                className="bg-transparent border-none focus:ring-0 text-sm font-semibold text-gray-700 pr-8"
+                            >
+                                {restaurants.map(res => (
+                                    <option key={res.id} value={res.id}>{res.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Dynamic Link for SuperAdmin */}
+                        {selectedRestaurant && selectedRestaurant.slug && (
+                            <a
+                                href={`/m/${selectedRestaurant.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition-all flex items-center justify-center group"
+                                title="Voir le menu public"
+                            >
+                                <ExternalLink size={20} className="group-hover:scale-110 transition-transform" />
+                            </a>
+                        )}
                     </div>
                 )}
             </div>
