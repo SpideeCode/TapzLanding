@@ -1,4 +1,5 @@
 import { QrCode, Smartphone, Zap, Clock, CreditCard, Users, ArrowRight, Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import FadeIn from '../components/FadeIn';
 import InteractiveDemo from '../components/InteractiveDemo';
 import WaitlistForm from '../components/WaitlistForm';
@@ -28,15 +29,16 @@ export default function Home() {
                                 commandez, et payez directement depuis votre smartphone. Simple, rapide, fluide.
                             </p>
 
-                            <div className="space-y-6">
-                                <WaitlistForm variant="hero" />
-
-                            </div>
-
                             <div className="flex flex-wrap gap-4 pt-4">
+                                <Link
+                                    to="/onboarding"
+                                    className="px-8 py-4 bg-[#3B82F6] text-white rounded-full font-bold text-lg hover:bg-[#2563EB] hover:shadow-lg hover:shadow-blue-600/20 transition-all flex items-center gap-2"
+                                >
+                                    Commencer maintenant <ArrowRight size={20} />
+                                </Link>
                                 <a
                                     href="#demo"
-                                    className="px-8 py-4 border-2 border-[#3B82F6] text-[#3B82F6] rounded-full font-semibold hover:bg-[#161617] transition-all"
+                                    className="px-8 py-4 border-2 border-[#2A2A2B] text-white rounded-full font-semibold hover:bg-[#161617] hover:border-white transition-all"
                                 >
                                     Voir la démo
                                 </a>
@@ -177,15 +179,22 @@ export default function Home() {
             <section className="container mx-auto px-6 py-20">
                 <FadeIn>
                     <div className="bg-[#161617] rounded-3xl p-12 lg:p-20 text-center border-2 border-[#2A2A2B]">
-                        <h2 className="text-4xl font-bold mb-6 text-[#EAEAEA]">Bientôt disponible</h2>
+                        <h2 className="text-4xl font-bold mb-6 text-[#EAEAEA]">Prêt à digitaliser votre restaurant ?</h2>
                         <p className="text-xl text-[#A0A0A0] mb-10 max-w-2xl mx-auto">
-                            Nous finalisons les derniers détails. Rejoignez la liste d'attente pour être informé du lancement et bénéficier d'avantages exclusifs.
+                            Rejoignez les restaurants qui font confiance à Tapzy pour améliorer leur service.
                         </p>
 
-                        <WaitlistForm variant="footer" />
+                        <div className="flex justify-center">
+                            <Link
+                                to="/onboarding"
+                                className="px-8 py-4 bg-[#3B82F6] text-white rounded-full font-bold text-lg hover:bg-[#2563EB] hover:shadow-lg hover:shadow-blue-600/20 transition-all flex items-center gap-2"
+                            >
+                                Configurer mon restaurant <ArrowRight size={20} />
+                            </Link>
+                        </div>
 
                         <p className="text-sm text-[#A0A0A0] mt-8">
-                            Soyez les premiers informés • Pas de spam
+                            Essai gratuit • Sans engagement • Installation en 2 min
                         </p>
                     </div>
                 </FadeIn>

@@ -28,6 +28,8 @@ import { StaffLayout } from './components/layouts/StaffLayout';
 import { LiveOrders as StaffOrders } from './pages/staff/LiveOrders';
 import { StaffLogin } from './pages/staff/StaffLogin';
 import { StaffRoute } from './components/auth/StaffRoute';
+import { OnboardingWizard } from './pages/onboarding/OnboardingWizard';
+import { OnboardingSuccess } from './pages/onboarding/OnboardingSuccess';
 
 function ScrollToTop() {
   // Scroll to top on route change unless it's an anchor link
@@ -108,6 +110,7 @@ export default function App() {
           <Route path="/admin/*" element={null} />
           <Route path="/staff/:slug/*" element={null} />
           <Route path="/login" element={null} />
+          <Route path="/onboarding/*" element={null} />
           <Route path="/m/*" element={null} />
           <Route path="*" element={
             <header className="container mx-auto px-6 py-6 transition-all duration-300">
@@ -166,6 +169,10 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/m/:slug" element={<PublicMenu />} />
 
+            {/* Onboarding Routes */}
+            <Route path="/onboarding" element={<OnboardingWizard />} />
+            <Route path="/onboarding/success" element={<OnboardingSuccess />} />
+
             {/* Superadmin Routes (Protected) */}
             <Route path="/superadmin/*" element={
               <ProtectedRoute requiredRole="superadmin">
@@ -217,6 +224,7 @@ export default function App() {
           <Route path="/admin/*" element={null} />
           <Route path="/staff/:slug/*" element={null} />
           <Route path="/login" element={null} />
+          <Route path="/onboarding/*" element={null} />
           <Route path="/m/*" element={null} />
           <Route path="*" element={
             <footer className="bg-[#0A0A0B] py-12 border-t border-[#1A1A1B]">
