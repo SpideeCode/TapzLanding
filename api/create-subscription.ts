@@ -9,6 +9,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const { priceId, restaurantId, email, successUrl, cancelUrl } = req.body;
 
+        // Check if Stripe is configured
+        if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.includes('placeholder')) {
+            return res.status(500).json({ error: 'Server Config Error: STRIPE_SECRET_KEY missing.' });
+        }
+
         if (!priceId || !restaurantId) {
             return res.status(400).json({ error: 'Missing parameters' });
         }
