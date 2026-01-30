@@ -26,7 +26,7 @@ export const StaffLogin = () => {
 
             if (data.success) {
                 // Store minimal session info
-                localStorage.setItem(`staff_session_${slug}`, JSON.stringify({
+                sessionStorage.setItem(`staff_session_${slug}`, JSON.stringify({
                     timestamp: new Date().toISOString(),
                     restaurantId: data.restaurant.id
                 }));

@@ -49,7 +49,7 @@ export const GlobalStaffLogin = () => {
             if (rpcError) throw rpcError;
 
             if (data.success) {
-                localStorage.setItem(`staff_session_${slug}`, JSON.stringify({
+                sessionStorage.setItem(`staff_session_${slug}`, JSON.stringify({
                     timestamp: new Date().toISOString(),
                     restaurantId: data.restaurant.id
                 }));

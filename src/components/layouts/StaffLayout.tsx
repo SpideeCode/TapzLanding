@@ -8,7 +8,7 @@ import {
     X,
     Bell
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+
 
 interface StaffLayoutProps {
     children: React.ReactNode;
@@ -20,7 +20,10 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
     const location = useLocation();
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
+        if (slug) {
+            sessionStorage.removeItem(`staff_session_${slug}`);
+            window.location.href = `/staff/${slug}/login`;
+        }
     };
 
     const navigation = [
