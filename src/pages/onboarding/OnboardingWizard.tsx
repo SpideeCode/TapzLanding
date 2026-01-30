@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { ChefHat, ArrowRight, Check, LayoutDashboard, QrCode } from 'lucide-react';
+import { ChefHat, ArrowRight, Check, LayoutDashboard, QrCode, CreditCard, Star, ShieldCheck } from 'lucide-react';
 
 export const OnboardingWizard: React.FC = () => {
     const navigate = useNavigate();
@@ -12,6 +12,50 @@ export const OnboardingWizard: React.FC = () => {
     const [authData, setAuthData] = useState({ email: '', password: '' });
     const [restaurantData, setRestaurantData] = useState({ name: '', slug: '' });
     const [setupData, setSetupData] = useState({ tables: 10, categoryName: 'Entrées', itemName: 'Salade César', itemPrice: '12' });
+    const [createdRestaurantId, setCreatedRestaurantId] = useState<string | null>(null);
+
+    const handleSelectPlan = async (plan: 'free' | 'standard' | 'premium') => {
+        if (!createdRestaurantId) return;
+        setLoading(true);
+
+        try {
+            if (plan === 'free') {
+                // Already set to trial/free by default, just finish
+                navigate('/onboarding/success');
+                return;
+            }
+
+            // For Paid Plans
+            const priceId = plan === 'standard'
+                ? import.meta.env.VITE_STRIPE_PRICE_ID_STANDARD
+                : import.meta.env.VITE_STRIPE_PRICE_ID_PREMIUM;
+
+            // Call Backend API
+            const res = await fetch('/api/create-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    priceId,
+                    restaurantId: createdRestaurantId,
+                    email: authData.email,
+                    successUrl: `${window.location.origin}/onboarding/success`,
+                    cancelUrl: window.location.href
+                })
+            });
+
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error("Erreur lors de la création du paiement");
+            }
+
+        } catch (err: any) {
+            console.error(err);
+            setError("Erreur avec Stripe: " + err.message);
+            setLoading(false);
+        }
+    };
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -102,8 +146,8 @@ export const OnboardingWizard: React.FC = () => {
                 }]);
             }
 
-            // Redirect to success
-            navigate('/onboarding/success');
+            setCreatedRestaurantId(restaurantId);
+            setStep(3); // Go to Plan Selection
 
         } catch (err: any) {
             console.error(err);
@@ -123,7 +167,7 @@ export const OnboardingWizard: React.FC = () => {
                 <div className="absolute top-0 left-0 w-full h-2 bg-slate-100">
                     <div
                         className="h-full bg-blue-600 transition-all duration-500 ease-out"
-                        style={{ width: `${(step / 2) * 100}%` }}
+                        style={{ width: `${(step / 3) * 100}%` }}
                     />
                 </div>
 
@@ -268,6 +312,94 @@ export const OnboardingWizard: React.FC = () => {
                             )}
                         </button>
                     </form>
+                )}
+
+                {step === 3 && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+                        <div className="text-center mb-8">
+                            <h2 className="text-3xl font-black text-slate-900 mb-2">Choisissez votre Offre</h2>
+                            <p className="text-slate-500 font-medium">Démarrez gratuitement ou passez à la vitesse supérieure.</p>
+                        </div>
+
+                        {error && (
+                            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-100">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 gap-4">
+                            {/* FREE */}
+                            <button
+                                onClick={() => handleSelectPlan('free')}
+                                disabled={loading}
+                                className="group relative p-6 rounded-2xl border-2 border-slate-100 hover:border-slate-300 transition-all text-left bg-white hover:shadow-lg"
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h3 className="text-lg font-black text-slate-900 uppercase">Gratuit</h3>
+                                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Jusqu'à 50 commandes/mois</p>
+                                    </div>
+                                    <span className="text-2xl font-black text-slate-900">0€</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
+                                    <Check size={16} className="text-emerald-500" /> Gestion de base
+                                </div>
+                            </button>
+
+                            {/* STANDARD */}
+                            <button
+                                onClick={() => handleSelectPlan('standard')}
+                                disabled={loading}
+                                className="group relative p-6 rounded-2xl border-2 border-blue-100 hover:border-blue-600 transition-all text-left bg-blue-50/30 hover:shadow-xl hover:shadow-blue-500/10"
+                            >
+                                <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-bl-xl rounded-tr-xl">Populaire</div>
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h3 className="text-lg font-black text-blue-900 uppercase flex items-center gap-2">Standard <Star size={16} fill="currentColor" className="text-amber-400" /></h3>
+                                        <p className="text-blue-400 text-xs font-bold uppercase tracking-widest">Commandes illimitées</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-2xl font-black text-slate-900">49€</span>
+                                        <span className="text-xs font-bold text-slate-400 block">/mois</span>
+                                    </div>
+                                </div>
+                                <ul className="space-y-1">
+                                    <li className="flex items-center gap-2 text-slate-600 text-xs font-bold">
+                                        <Check size={14} className="text-blue-500" /> Menu Digital QR
+                                    </li>
+                                    <li className="flex items-center gap-2 text-slate-600 text-xs font-bold">
+                                        <Check size={14} className="text-blue-500" /> Paiement à table (Commissions 1%)
+                                    </li>
+                                </ul>
+                            </button>
+
+                            {/* PREMIUM */}
+                            <button
+                                onClick={() => handleSelectPlan('premium')}
+                                disabled={loading}
+                                className="group relative p-6 rounded-2xl border-2 border-slate-900 bg-slate-900 text-white hover:scale-[1.01] transition-all text-left shadow-2xl"
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h3 className="text-lg font-black text-white uppercase flex items-center gap-2">Premium <ShieldCheck size={16} className="text-emerald-400" /></h3>
+                                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Tout inclus + Support VIP</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-2xl font-black text-white">89€</span>
+                                        <span className="text-xs font-bold text-slate-500 block">/mois</span>
+                                    </div>
+                                </div>
+                                <ul className="space-y-1">
+                                    <li className="flex items-center gap-2 text-slate-300 text-xs font-bold">
+                                        <Check size={14} className="text-emerald-400" /> Multi-comptes Staff
+                                    </li>
+                                    <li className="flex items-center gap-2 text-slate-300 text-xs font-bold">
+                                        <Check size={14} className="text-emerald-400" /> Analytics avancés
+                                    </li>
+                                </ul>
+                            </button>
+                        </div>
+                    </div>
                 )}
             </div>
 
