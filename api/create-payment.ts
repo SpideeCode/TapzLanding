@@ -1,6 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { stripe } from './stripe-config';
+import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+
+const key = process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder';
+const stripe = new Stripe(key, { typescript: true });
 
 const supabase = createClient(
     process.env.VITE_SUPABASE_URL!,
