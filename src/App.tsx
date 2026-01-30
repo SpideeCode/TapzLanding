@@ -27,6 +27,7 @@ import { RestaurantSettings } from './pages/admin/RestaurantSettings';
 import { StaffLayout } from './components/layouts/StaffLayout';
 import { LiveOrders as StaffOrders } from './pages/staff/LiveOrders';
 import { StaffLogin } from './pages/staff/StaffLogin';
+import { GlobalStaffLogin } from './pages/staff/GlobalStaffLogin';
 import { StaffRoute } from './components/auth/StaffRoute';
 import { OnboardingWizard } from './pages/onboarding/OnboardingWizard';
 import { OnboardingSuccess } from './pages/onboarding/OnboardingSuccess';
@@ -204,6 +205,7 @@ export default function App() {
             } />
             {/* Staff Routes (Protected) */}
             {/* Staff Routes */}
+            <Route path="/staff/login" element={<GlobalStaffLogin />} />
             <Route path="/staff/:slug/login" element={<StaffLogin />} />
 
             <Route element={<StaffRoute />}>
@@ -240,6 +242,7 @@ export default function App() {
                   </div>
                   <div className="text-gray-500 flex flex-wrap justify-center gap-8 text-sm">
                     <Link to="/contact" className="hover:text-[#3B82F6] transition-colors">Contact</Link>
+                    <Link to="/staff/login" className="hover:text-[#3B82F6] transition-colors">Espace Staff</Link>
                     <Link to="/login" className="hover:text-[#3B82F6] transition-colors">Admin</Link>
                     <span>&copy; 2026 Tapzy. Tous droits réservés.</span>
                   </div>

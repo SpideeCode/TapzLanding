@@ -307,11 +307,32 @@ export const RestaurantSettings: React.FC = () => {
                                 onClick={handleSavePin}
                                 disabled={savingPin}
                                 type="button"
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-5 rounded-[2rem] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-5 rounded-[2rem] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group mb-4"
                             >
                                 {savingPin ? '...' : 'Enregistrer le Code'}
                                 {!savingPin && <Lock size={16} strokeWidth={2.5} />}
                             </button>
+                        </div>
+                    </div>
+                    {/* QR Code For Staff */}
+                    <div className="pt-8 border-t-2 border-slate-100 flex flex-col md:flex-row items-center gap-8">
+                        <div className="bg-slate-900 p-4 rounded-3xl shadow-lg">
+                            <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${window.location.origin}/staff/${slug}/login`}
+                                alt="QR Code Staff"
+                                className="w-32 h-32 rounded-xl"
+                            />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                            <h3 className="font-black text-slate-900 text-lg">QR Code d'accès Staff</h3>
+                            <p className="text-slate-500 font-medium text-sm leading-relaxed">
+                                Imprimez ce QR Code et affichez-le en cuisine. Vos employés n'auront qu'à le scanner pour accéder directement à la page de connexion de votre restaurant.
+                            </p>
+                            <div className="flex items-center gap-2 mt-4">
+                                <span className="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-500 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                                    {window.location.origin}/staff/{slug}/login
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -354,7 +375,7 @@ export const RestaurantSettings: React.FC = () => {
                         {saving ? 'Synchronisation...' : 'Enregistrer les paramètres'}
                     </button>
                 </div>
-            </form>
-        </div>
+            </form >
+        </div >
     );
 };
