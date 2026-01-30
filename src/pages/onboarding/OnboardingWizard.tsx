@@ -31,6 +31,7 @@ export const OnboardingWizard: React.FC = () => {
                 : import.meta.env.VITE_STRIPE_PRICE_ID_PREMIUM;
 
             // Call Backend API
+            // Call Backend API
             const res = await fetch('/api/create-subscription', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -43,11 +44,21 @@ export const OnboardingWizard: React.FC = () => {
                 })
             });
 
-            const data = await res.json();
-            if (data.url) {
-                window.location.href = data.url;
+            const contentType = res.headers.get("content-type");
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Erreur ${res.status}: ${text.slice(0, 100)}`);
+            }
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                const data = await res.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    throw new Error("Pas d'URL de redirection Stripe reçue");
+                }
             } else {
-                throw new Error("Erreur lors de la création du paiement");
+                const text = await res.text();
+                throw new Error("Réponse invalide du serveur: " + text.slice(0, 50));
             }
 
         } catch (err: any) {
