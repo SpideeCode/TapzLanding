@@ -28,7 +28,9 @@ export const LiveOrders: React.FC = () => {
                         .from('restaurants')
                         .select('id')
                         .eq('slug', slug)
-                        .single();
+                        .maybeSingle(); // Prevents "0 rows" error
+
+                    console.log(`[Resolution] Slug: ${slug}, Found:`, restaurant);
 
                     if (fetchError) throw fetchError;
 
