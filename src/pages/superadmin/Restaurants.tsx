@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
 
@@ -14,6 +15,7 @@ interface Restaurant {
 }
 
 export const RestaurantManagement: React.FC = () => {
+    const navigate = useNavigate();
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -30,6 +32,19 @@ export const RestaurantManagement: React.FC = () => {
     useEffect(() => {
         fetchRestaurants();
     }, []);
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer ce restaurant ? Cette action est irréversible.')) return;
+        setLoading(true);
+        const { error } = await supabase.from('restaurants').delete().eq('id', id);
+        if (error) {
+            console.error(error);
+            alert('Erreur lors de la suppression: ' + error.message);
+        } else {
+            fetchRestaurants();
+        }
+        setLoading(false);
+    };
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -129,10 +144,18 @@ export const RestaurantManagement: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end space-x-2">
-                                            <button className="p-2.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                                            <button
+                                                onClick={() => navigate(`/superadmin/restaurant/${res.id}`)}
+                                                className="p-2.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                                title="Gérer ce restaurant"
+                                            >
                                                 <Edit2 size={18} strokeWidth={2.5} />
                                             </button>
-                                            <button className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                                            <button
+                                                onClick={() => handleDelete(res.id)}
+                                                className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                title="Supprimer ce restaurant"
+                                            >
                                                 <Trash2 size={18} strokeWidth={2.5} />
                                             </button>
                                         </div>
