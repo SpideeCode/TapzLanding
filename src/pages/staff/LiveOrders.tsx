@@ -18,22 +18,36 @@ export const LiveOrders: React.FC = () => {
     const [restaurantId, setRestaurantId] = useState<string | null>(null);
     const { orders, loading, updateOrderStatus } = useStaffOrders(restaurantId || '');
 
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
         const resolveRestaurant = async () => {
-            if (slug) {
-                const { data: restaurant } = await supabase
-                    .from('restaurants')
-                    .select('id')
-                    .eq('slug', slug)
-                    .single();
-                if (restaurant) setRestaurantId(restaurant.id);
-            } else {
-                // Admin Context: Fetch from logged user
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    const { data: profile } = await supabase.from('profiles').select('restaurant_id').eq('id', user.id).single();
-                    if (profile?.restaurant_id) setRestaurantId(profile.restaurant_id);
+            try {
+                if (slug) {
+                    const { data: restaurant, error: fetchError } = await supabase
+                        .from('restaurants')
+                        .select('id')
+                        .eq('slug', slug)
+                        .single();
+
+                    if (fetchError) throw fetchError;
+
+                    if (restaurant) {
+                        setRestaurantId(restaurant.id);
+                    } else {
+                        setError("Restaurant introuvable");
+                    }
+                } else {
+                    // Admin Context
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        const { data: profile } = await supabase.from('profiles').select('restaurant_id').eq('id', user.id).single();
+                        if (profile?.restaurant_id) setRestaurantId(profile.restaurant_id);
+                    }
                 }
+            } catch (err: any) {
+                console.error("Error resolving restaurant:", err);
+                setError("Erreur chargement: " + err.message);
             }
         };
         resolveRestaurant();
@@ -65,6 +79,18 @@ export const LiveOrders: React.FC = () => {
             alert('Impossible de mettre à jour le statut : ' + err.message);
         }
     };
+
+    if (error) {
+        return (
+            <div className="p-8 flex items-center justify-center min-h-[60vh]">
+                <div className="flex flex-col items-center gap-4 text-center">
+                    <AlertCircle className="w-12 h-12 text-rose-500" />
+                    <span className="font-black italic uppercase tracking-widest text-rose-500">Erreur</span>
+                    <p className="text-slate-500">{error}</p>
+                </div>
+            </div>
+        );
+    }
 
     if (loading && !restaurantId) {
         return (
