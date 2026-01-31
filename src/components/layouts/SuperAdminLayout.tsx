@@ -37,6 +37,7 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({ children }) 
     ] : [
         { name: 'Tableau de bord', href: '/superadmin', icon: LayoutDashboard },
         { name: 'Restaurants', href: '/superadmin/restaurants', icon: Store },
+        { name: 'Utilisateurs', href: '/superadmin/staff', icon: Users },
     ];
 
     const handleLogout = async () => {
