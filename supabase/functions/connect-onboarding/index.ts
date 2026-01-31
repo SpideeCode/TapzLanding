@@ -27,7 +27,7 @@ serve(async (req) => {
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        const { restaurantId, email } = await req.json();
+        const { restaurantId, email, returnUrl } = await req.json();
 
         if (!restaurantId) {
             throw new Error('Missing restaurantId');
@@ -69,10 +69,11 @@ serve(async (req) => {
         }
 
         // 4. Create Account Link
+        const redirectBase = returnUrl || appUrl;
         const accountLink = await stripe.accountLinks.create({
             account: accountId,
-            refresh_url: `${appUrl}/admin/settings?connect=refresh`,
-            return_url: `${appUrl}/admin/settings?connect=success`,
+            refresh_url: `${redirectBase}/admin/settings?connect=refresh`,
+            return_url: `${redirectBase}/admin/settings?connect=success`,
             type: 'account_onboarding',
         });
 

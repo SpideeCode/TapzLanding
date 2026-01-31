@@ -12,6 +12,8 @@ interface Restaurant {
     plan_type: string | null;
     payments_enabled: boolean;
     created_at: string;
+    total_revenue: number;
+    total_commission: number;
 }
 
 export const RestaurantManagement: React.FC = () => {
@@ -23,11 +25,18 @@ export const RestaurantManagement: React.FC = () => {
 
     const fetchRestaurants = async () => {
         setLoading(true);
-        const { data, error } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false });
-        if (error) console.error(error);
+        const { data, error } = await supabase.rpc('get_restaurants_with_stats');
+        if (error) {
+            console.error(error);
+            // Fallback if RPC fails or not exists yet
+            const { data: fallbackData } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false });
+            setRestaurants(fallbackData || []);
+        }
         else setRestaurants(data || []);
         setLoading(false);
     };
+
+    const totalPlatformRevenue = restaurants.reduce((acc, curr) => acc + (curr.total_commission || 0), 0);
 
     useEffect(() => {
         fetchRestaurants();
@@ -64,6 +73,11 @@ export const RestaurantManagement: React.FC = () => {
                     <h1 className="text-3xl font-black text-gray-900 tracking-tight">Restaurants</h1>
                     <p className="text-gray-600 font-medium">Gestion et supervision des établissements.</p>
                 </div>
+                {/* Revenue Summary Card */}
+                <div className="bg-slate-900 text-white px-6 py-3 rounded-2xl flex flex-col items-end shadow-xl shadow-slate-900/20">
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Revenu Plateforme</span>
+                    <span className="text-2xl font-black text-emerald-400">{(totalPlatformRevenue / 100).toFixed(2)} €</span>
+                </div>
                 <button
                     onClick={() => setShowAddModal(true)}
                     className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center space-x-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 w-full sm:w-auto text-center justify-center"
@@ -93,6 +107,7 @@ export const RestaurantManagement: React.FC = () => {
                             <th className="px-6 py-4 text-sm font-semibold text-gray-600">Nom & Slug</th>
                             <th className="px-6 py-4 text-sm font-semibold text-gray-600">Plan & Statut</th>
                             <th className="px-6 py-4 text-sm font-semibold text-gray-600">Paiements (Connect)</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-gray-600 text-right">CA / Com</th>
                             <th className="px-6 py-4 text-sm font-semibold text-gray-600 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -141,6 +156,14 @@ export const RestaurantManagement: React.FC = () => {
                                         ) : (
                                             <span className="text-gray-300 italic text-xs">Non connecté</span>
                                         )}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex flex-col items-end">
+                                            <span className="font-bold text-gray-900">{((res.total_revenue || 0) / 100).toFixed(2)} €</span>
+                                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 rounded uppercase">
+                                                Com: {((res.total_commission || 0) / 100).toFixed(2)} €
+                                            </span>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end space-x-2">

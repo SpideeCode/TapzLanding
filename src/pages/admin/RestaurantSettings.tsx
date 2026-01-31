@@ -30,6 +30,7 @@ interface Restaurant {
     stripe_connect_id: string | null;
     payments_enabled: boolean;
     plan_type: 'standard' | 'premium' | 'free' | null;
+    current_period_end: string | null;
 }
 
 export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restaurantId: propRestaurantId }) => {
@@ -39,6 +40,7 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
     const [savingPin, setSavingPin] = useState(false);
     const [actionLoading, setActionLoading] = useState(false); // For connect/subscription buttons
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [stats, setStats] = useState<{ total_revenue: number, total_commission: number } | null>(null);
     const [activeTab, setActiveTab] = useState<'general' | 'branding' | 'monetization' | 'staff'>('general');
 
     // Form fields
@@ -77,12 +79,38 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                     setBackgroundColor(res.background_color || '#FDFDFD');
                     setFontColor(res.font_color || '#1E293B');
                     setStaffCode(res.staff_access_code || '');
+
+                    // Fetch Stats
+                    const { data: statsData } = await supabase.rpc('get_restaurant_stats', { target_restaurant_id: res.id });
+                    if (statsData) setStats(statsData);
                 }
             }
             setLoading(false);
         };
         fetchRestaurant();
-    }, [propRestaurantId]);
+
+        // Realtime Subscription
+        if (propRestaurantId) return; // Don't subscribe in SuperAdmin view/prop view to avoid conflicts or just simple optimization
+
+        const channel = supabase.channel('restaurant-settings-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'restaurants',
+                    filter: `id=eq.${restaurant?.id || '*'}` // * is fallback, effective on re-render
+                },
+                (payload) => {
+                    setRestaurant(prev => prev ? { ...prev, ...payload.new as any } : null);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [propRestaurantId, restaurant?.id]);
 
     const handleSavePin = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -142,7 +170,8 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
             const { data, error } = await supabase.functions.invoke('connect-onboarding', {
                 body: {
                     restaurantId: restaurant.id,
-                    email: user?.email
+                    email: user?.email,
+                    returnUrl: window.location.origin
                 }
             });
 
@@ -463,17 +492,25 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <span className="font-bold text-slate-500">Statut</span>
-                                            <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest ${restaurant?.subscription_status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                                                {restaurant?.subscription_status === 'active' ? 'Actif' : restaurant?.subscription_status || 'Inconnu'}
+                                            <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest ${restaurant?.subscription_status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                                                {restaurant?.subscription_status === 'active' ? 'Actif' : restaurant?.subscription_status || 'Inactif'}
                                             </span>
                                         </div>
+                                        {restaurant?.current_period_end && (
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-bold text-slate-500">Prochaine facture</span>
+                                                <span className="font-black text-slate-900">
+                                                    {new Date(restaurant.current_period_end).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                        )}
                                         <button
                                             type="button"
                                             onClick={handleManageSubscription}
                                             disabled={actionLoading}
                                             className="w-full py-4 mt-2 bg-white border-2 border-slate-200 hover:border-blue-600 text-slate-900 hover:text-blue-600 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-sm"
                                         >
-                                            Gérer l'abonnement
+                                            Gérer ma facturation
                                         </button>
                                     </div>
                                 </div>
@@ -482,22 +519,41 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                 <div className="space-y-4">
                                     <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Paiements Clients</h3>
                                     <div className="p-6 bg-slate-50 rounded-[2rem] border-2 border-slate-100 flex flex-col gap-4 h-full justify-between">
-                                        <p className="text-sm font-medium text-slate-500">
-                                            Recevez les paiements directement sur votre compte bancaire via Stripe.
-                                        </p>
+
                                         {restaurant?.payments_enabled ? (
-                                            <div className="flex items-center gap-3 text-emerald-600 font-black uppercase tracking-widest text-xs bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                                                <CheckCircle2 size={16} /> Compte actif & relié
-                                            </div>
+                                            <>
+                                                <div className="flex items-center gap-3 text-emerald-600 font-black uppercase tracking-widest text-xs bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                                                    <CheckCircle2 size={16} /> Connecté à Stripe
+                                                </div>
+                                                <div className="space-y-2 pt-2 border-t border-slate-200">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-xs font-bold text-slate-400 uppercase">Total Encaissé</span>
+                                                        <span className="font-black text-slate-900">
+                                                            {stats ? ((stats.total_revenue || 0) / 100).toFixed(2) : '0.00'} €
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-xs font-bold text-slate-400 uppercase">Commissions Tapzy</span>
+                                                        <span className="font-black text-slate-900">
+                                                            {stats ? ((stats.total_commission || 0) / 100).toFixed(2) : '0.00'} €
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </>
                                         ) : (
-                                            <button
-                                                type="button"
-                                                onClick={handleConnectStripe}
-                                                disabled={actionLoading}
-                                                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
-                                            >
-                                                Activer les paiements <ArrowRight size={16} />
-                                            </button>
+                                            <>
+                                                <p className="text-sm font-medium text-slate-500">
+                                                    Activez les paiements pour recevoir l'argent de vos commandes directement sur votre compte bancaire.
+                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleConnectStripe}
+                                                    disabled={actionLoading}
+                                                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                                                >
+                                                    Activer les paiements <ArrowRight size={16} />
+                                                </button>
+                                            </>
                                         )}
                                     </div>
                                 </div>
