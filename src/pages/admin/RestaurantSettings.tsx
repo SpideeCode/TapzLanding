@@ -138,15 +138,17 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
         setActionLoading(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            const res = await fetch('/api/connect-onboarding', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+
+            const { data, error } = await supabase.functions.invoke('connect-onboarding', {
+                body: {
                     restaurantId: restaurant.id,
                     email: user?.email
-                })
+                }
             });
-            const data = await res.json();
+
+            if (error) throw error;
+            if (data.error) throw new Error(data.error);
+
             if (data.url) {
                 window.location.href = data.url;
             } else {
@@ -154,7 +156,7 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
             }
         } catch (error: any) {
             console.error(error);
-            setMessage({ type: 'error', text: error.message });
+            setMessage({ type: 'error', text: error.message || 'Erreur de connexion' });
             setActionLoading(false);
         }
     };
@@ -163,14 +165,15 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
         if (!restaurant) return;
         setActionLoading(true);
         try {
-            const res = await fetch('/api/get-portal-url', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+            const { data, error } = await supabase.functions.invoke('get-portal-url', {
+                body: {
                     restaurantId: restaurant.id
-                })
+                }
             });
-            const data = await res.json();
+
+            if (error) throw error;
+            if (data.error) throw new Error(data.error);
+
             if (data.url) {
                 window.location.href = data.url;
             } else {
@@ -178,7 +181,7 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
             }
         } catch (error: any) {
             console.error(error);
-            setMessage({ type: 'error', text: error.message });
+            setMessage({ type: 'error', text: error.message || 'Erreur inconnue' });
             setActionLoading(false);
         }
     };
