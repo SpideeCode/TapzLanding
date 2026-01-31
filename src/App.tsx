@@ -182,7 +182,7 @@ export default function App() {
                   <Routes>
                     <Route index element={<SuperAdminDashboard />} />
                     <Route path="restaurants" element={<RestaurantManagement />} />
-                    <Route path="restaurant/:id" element={<RestaurantManager />} />
+                    <Route path="restaurant/:id/*" element={<RestaurantManager />} />
                     <Route path="staff" element={<SuperAdminStaff />} />
                     <Route path="menus" element={<MenuManagement />} />
                     <Route path="tables" element={<TableManagement />} />
