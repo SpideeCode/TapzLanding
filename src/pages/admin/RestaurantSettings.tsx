@@ -8,7 +8,9 @@ import {
     Link as LinkIcon,
     AlertCircle,
     CheckCircle2,
-    Lock
+    Lock,
+    CreditCard,
+    ArrowRight
 } from 'lucide-react';
 
 interface Restaurant {
@@ -21,6 +23,10 @@ interface Restaurant {
     primary_color: string | null;
     background_color: string | null;
     font_color: string | null;
+    subscription_status: string | null;
+    stripe_connect_id: string | null;
+    payments_enabled: boolean;
+    plan_type: 'standard' | 'premium' | 'free' | null;
 }
 
 export const RestaurantSettings: React.FC = () => {
@@ -28,6 +34,7 @@ export const RestaurantSettings: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [savingPin, setSavingPin] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false); // For connect/subscription buttons
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     // Form fields
@@ -114,6 +121,56 @@ export const RestaurantSettings: React.FC = () => {
         }
     };
 
+    const handleConnectStripe = async () => {
+        if (!restaurant) return;
+        setActionLoading(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            const res = await fetch('/api/connect-onboarding', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    restaurantId: restaurant.id,
+                    email: user?.email
+                })
+            });
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error("Erreur lors de la génération du lien Connect.");
+            }
+        } catch (error: any) {
+            console.error(error);
+            setMessage({ type: 'error', text: error.message });
+            setActionLoading(false);
+        }
+    };
+
+    const handleManageSubscription = async () => {
+        if (!restaurant) return;
+        setActionLoading(true);
+        try {
+            const res = await fetch('/api/get-portal-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    restaurantId: restaurant.id
+                })
+            });
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error("Erreur lors de la génération du lien Portail.");
+            }
+        } catch (error: any) {
+            console.error(error);
+            setMessage({ type: 'error', text: error.message });
+            setActionLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="py-24 text-center">
@@ -144,6 +201,7 @@ export const RestaurantSettings: React.FC = () => {
             )}
 
             <form onSubmit={handleSave} className="grid grid-cols-1 gap-12">
+
                 {/* Visual Identity Section */}
                 <div className="bg-white rounded-[2rem] md:rounded-[3rem] border-2 border-slate-200 p-6 md:p-10 space-y-10 shadow-sm relative overflow-hidden active:focus-within:border-blue-600 transition-colors duration-500">
                     <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-50 rounded-full blur-3xl pointer-events-none opacity-50" />
@@ -173,6 +231,69 @@ export const RestaurantSettings: React.FC = () => {
                                 placeholder="https://votre-site.com/logo.png"
                             />
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-4 italic">Format recommandé: PNG ou SVG (carré) avec fond transparent</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Monetization Section */}
+                <div className="bg-white rounded-[2rem] md:rounded-[3rem] border-2 border-slate-200 p-6 md:p-10 space-y-10 shadow-sm relative overflow-hidden">
+                    <div className="flex items-center gap-4 border-b-2 border-slate-100 pb-8">
+                        <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 border-2 border-white shadow-sm">
+                            <CreditCard size={24} strokeWidth={2.5} />
+                        </div>
+                        <h2 className="text-xl font-black text-slate-900 italic tracking-tight uppercase">Monétisation</h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Subscription Status */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Abonnement</h3>
+                            <div className="p-6 bg-slate-50 rounded-[2rem] border-2 border-slate-100 flex flex-col gap-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold text-slate-500">Plan Actuel</span>
+                                    <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest ${restaurant?.plan_type === 'premium' ? 'bg-slate-900 text-white' : 'bg-blue-100 text-blue-700'}`}>
+                                        {restaurant?.plan_type === 'premium' ? 'Premium' : 'Standard'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold text-slate-500">Statut</span>
+                                    <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest ${restaurant?.subscription_status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        {restaurant?.subscription_status === 'active' ? 'Actif' : restaurant?.subscription_status || 'Inconnu'}
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleManageSubscription}
+                                    disabled={actionLoading}
+                                    className="w-full py-4 mt-2 bg-white border-2 border-slate-200 hover:border-blue-600 text-slate-900 hover:text-blue-600 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-sm"
+                                >
+                                    Gérer l'abonnement
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Stripe Connect Status */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Paiements Clients</h3>
+                            <div className="p-6 bg-slate-50 rounded-[2rem] border-2 border-slate-100 flex flex-col gap-4 h-full justify-between">
+                                <p className="text-sm font-medium text-slate-500">
+                                    Recevez les paiements directement sur votre compte bancaire via Stripe.
+                                </p>
+                                {restaurant?.payments_enabled ? (
+                                    <div className="flex items-center gap-3 text-emerald-600 font-black uppercase tracking-widest text-xs bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                                        <CheckCircle2 size={16} /> Compte actif & relié
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handleConnectStripe}
+                                        disabled={actionLoading}
+                                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                                    >
+                                        Activer les paiements <ArrowRight size={16} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

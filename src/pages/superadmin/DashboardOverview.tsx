@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Store, Users, ClipboardList, TrendingUp, DollarSign, Activity } from 'lucide-react';
+import { Store, TrendingUp, DollarSign, Activity } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format, subDays, eachDayOfInterval, parseISO } from 'date-fns';
 
@@ -9,6 +9,8 @@ interface GlobalStats {
     totalUsers: number;
     totalOrders: number;
     totalVolume: number;
+    mrr: number;
+    activeSubs: number;
 }
 
 export const DashboardOverview: React.FC = () => {
@@ -16,7 +18,9 @@ export const DashboardOverview: React.FC = () => {
         totalRestaurants: 0,
         totalUsers: 0,
         totalOrders: 0,
-        totalVolume: 0
+        totalVolume: 0,
+        mrr: 0,
+        activeSubs: 0
     });
     const [revenueData, setRevenueData] = useState<any[]>([]);
     const [topRestaurants, setTopRestaurants] = useState<any[]>([]);
@@ -26,8 +30,8 @@ export const DashboardOverview: React.FC = () => {
         const fetchGlobalStats = async () => {
             setLoading(true);
             try {
-                // Fetch all restaurants
-                const { data: restaurants } = await supabase.from('restaurants').select('id, name, created_at, slug');
+                // Fetch all restaurants with plan info
+                const { data: restaurants } = await supabase.from('restaurants').select('id, name, created_at, slug, plan_type, subscription_status');
 
                 // Fetch all orders (beware of scale in prod, but fine for MVP)
                 const { data: orders } = await supabase.from('orders').select('id, total_price, created_at, restaurant_id');
@@ -38,11 +42,24 @@ export const DashboardOverview: React.FC = () => {
                 // Calculate Totals
                 const totalVolume = orders?.reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
 
+                // Calculate MRR & Active Subs
+                let mrr = 0;
+                let activeSubs = 0;
+                restaurants?.forEach(r => {
+                    if (r.subscription_status === 'active') {
+                        activeSubs++;
+                        if (r.plan_type === 'premium') mrr += 89;
+                        else mrr += 49; // Default to standard
+                    }
+                });
+
                 setStats({
                     totalRestaurants: restaurants?.length || 0,
                     totalUsers: userCount || 0,
                     totalOrders: orders?.length || 0,
-                    totalVolume
+                    totalVolume,
+                    mrr,
+                    activeSubs
                 });
 
                 // Prepare Revenue Chart (Last 30 days)
@@ -76,7 +93,7 @@ export const DashboardOverview: React.FC = () => {
                 const sortedRes = restaurants?.map(r => ({
                     ...r,
                     revenue: resRevenue[r.id] || 0
-                })).sort((a, b) => b.revenue - a.revenue).slice(0, 5) || [];
+                })).sort((a: any, b: any) => b.revenue - a.revenue).slice(0, 5) || [];
 
                 setTopRestaurants(sortedRes);
 
@@ -91,10 +108,10 @@ export const DashboardOverview: React.FC = () => {
     }, []);
 
     const cards = [
-        { name: 'Restaurants Actifs', value: stats.totalRestaurants, icon: Store, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { name: 'Volume Total', value: `${(stats.totalVolume / 1000).toFixed(1)}k €`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { name: 'Commandes', value: stats.totalOrders, icon: ClipboardList, color: 'text-purple-600', bg: 'bg-purple-50' },
-        { name: 'Utilisateurs', value: stats.totalUsers, icon: Users, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { name: 'MRR (Revenu Mensuel)', value: `${stats.mrr} €`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { name: 'Volume Total', value: `${(stats.totalVolume / 1000).toFixed(1)}k €`, icon: DollarSign, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { name: 'Abonnements Actifs', value: stats.activeSubs, icon: Activity, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { name: 'Restaurants Total', value: stats.totalRestaurants, icon: Store, color: 'text-slate-600', bg: 'bg-slate-50' },
     ];
 
     if (loading) return <div className="flex h-96 items-center justify-center text-slate-400 font-bold animate-pulse">Chargement des données...</div>;
@@ -146,7 +163,7 @@ export const DashboardOverview: React.FC = () => {
                                 <Tooltip
                                     contentStyle={{ backgroundColor: '#1f2937', borderRadius: '12px', border: 'none', color: '#fff' }}
                                     itemStyle={{ color: '#fff' }}
-                                    formatter={(value: number) => [`${value} €`, 'Volume']}
+                                    formatter={(value?: number) => [`${value || 0} €`, 'Volume']}
                                 />
                                 <Area type="monotone" dataKey="volume" stroke="#059669" strokeWidth={3} fillOpacity={1} fill="url(#colorGlobalVol)" />
                             </AreaChart>

@@ -12,7 +12,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const { priceId, restaurantId, email, successUrl, cancelUrl } = req.body;
+        const { priceId, restaurantId, email, successUrl, cancelUrl, planType } = req.body;
 
         // Check if Stripe is configured
         if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.includes('placeholder')) {
@@ -35,7 +35,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             customer_email: email,
             metadata: {
                 restaurantId,
-                type: 'subscription_upgrade'
+                type: 'subscription_upgrade',
+                planType: planType || 'standard', // Default to standard if missing
             },
             success_url: successUrl || `${process.env.VITE_APP_URL}/admin/settings?success=true`,
             cancel_url: cancelUrl || `${process.env.VITE_APP_URL}/admin/settings?canceled=true`,

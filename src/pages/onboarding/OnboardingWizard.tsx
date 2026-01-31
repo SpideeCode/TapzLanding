@@ -1,165 +1,68 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { ChefHat, ArrowRight, Check, LayoutDashboard, QrCode, CreditCard, Star, ShieldCheck } from 'lucide-react';
+import { ChefHat, ArrowRight, Check, CreditCard } from 'lucide-react';
 
 export const OnboardingWizard: React.FC = () => {
-    const navigate = useNavigate();
+    // const navigate = useNavigate(); // Unused
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const [authData, setAuthData] = useState({ email: '', password: '' });
     const [restaurantData, setRestaurantData] = useState({ name: '', slug: '' });
-    const [setupData, setSetupData] = useState({ tables: 10, categoryName: 'Entrées', itemName: 'Salade César', itemPrice: '12' });
+    const [setupData, setSetupData] = useState({ tables: 10 });
+    const [calculatedPlan, setCalculatedPlan] = useState<'standard' | 'premium'>('standard');
     const [createdRestaurantId, setCreatedRestaurantId] = useState<string | null>(null);
 
-    const handleSelectPlan = async (plan: 'free' | 'standard' | 'premium') => {
-        if (!createdRestaurantId) return;
-        setLoading(true);
-
-        try {
-            if (plan === 'free') {
-                // Already set to trial/free by default, just finish
-                navigate('/onboarding/success');
-                return;
-            }
-
-            // For Paid Plans
-            const priceId = plan === 'standard'
-                ? import.meta.env.VITE_STRIPE_PRICE_ID_STANDARD
-                : import.meta.env.VITE_STRIPE_PRICE_ID_PREMIUM;
-
-            // Call Backend API
-            // Call Backend API
-            const res = await fetch('/api/create-subscription', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    priceId,
-                    restaurantId: createdRestaurantId,
-                    email: authData.email,
-                    successUrl: `${window.location.origin}/onboarding/success`,
-                    cancelUrl: window.location.href
-                })
-            });
-
-            const contentType = res.headers.get("content-type");
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(`Erreur ${res.status}: ${text.slice(0, 100)}`);
-            }
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                const data = await res.json();
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    throw new Error("Pas d'URL de redirection Stripe reçue");
-                }
-            } else {
-                const text = await res.text();
-                throw new Error("Réponse invalide du serveur: " + text.slice(0, 50));
-            }
-
-        } catch (err: any) {
-            console.error(err);
-            setError("Erreur avec Stripe: " + err.message);
-            setLoading(false);
+    // Auto-calculate plan when tables change
+    useEffect(() => {
+        if (setupData.tables > 10) {
+            setCalculatedPlan('premium');
+        } else {
+            setCalculatedPlan('standard');
         }
-    };
+    }, [setupData.tables]);
 
-    const handleSignUp = async (e: React.FormEvent) => {
+    // Step 1: Sign Up & Create Restaurant Identity
+    const handleStep1 = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+
         try {
-            const { data, error } = await supabase.auth.signUp({
+            // 1. Sign Up
+            const { data: authResult, error: authError } = await supabase.auth.signUp({
                 email: authData.email,
                 password: authData.password,
             });
-            if (error) throw error;
-            if (data.user) {
-                // Determine next step - ideally wait for session? 
-                // For simplicity, we assume auto-signin works or we catch them.
-                // If email confirm is off, we are good.
-                setStep(2);
-            }
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+            if (authError) throw authError;
+            if (!authResult.user) throw new Error("Erreur lors de la création du compte.");
 
-    const handleCreateRestaurant = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("Utilisateur non authentifié. Veuillez vous reconnecter.");
-
-            // 1. Generate ID and Create Restaurant
-            // We use client-side ID generation to avoid selecting the row immediately, 
-            // bypassing RLS race conditions where the user isn't 'admin' of the restaurant yet.
+            // 2. Create Restaurant with ID
             const restaurantId = crypto.randomUUID();
-
             const { error: resError } = await supabase
                 .from('restaurants')
                 .insert([{
                     id: restaurantId,
                     name: restaurantData.name,
                     slug: restaurantData.slug,
-                    subscription_status: 'trial'
+                    subscription_status: 'trial' // Default until payment
                 }]);
-
             if (resError) throw resError;
 
-            // 2. Update Profile with Restaurant ID & Role
+            // 3. Link Profile
             const { error: profileError } = await supabase
                 .from('profiles')
                 .update({
                     restaurant_id: restaurantId,
-                    role: 'admin'
+                    role: 'admin' // Make them admin
                 })
-                .eq('id', user.id);
+                .eq('id', authResult.user.id);
 
             if (profileError) throw profileError;
 
-            // 3. Create Basic Data (Tables, Category, Item)
-            // Tables
-            const tables = Array.from({ length: setupData.tables }, (_, i) => ({
-                restaurant_id: restaurantId,
-                table_number: `${i + 1}`,
-                qr_code_url: `https://tapzy.app/m/${restaurantData.slug}?table=${i + 1}`
-            }));
-            await supabase.from('tables').insert(tables);
-
-            // Category
-            const { data: category } = await supabase
-                .from('menus_categories')
-                .insert([{
-                    restaurant_id: restaurantId,
-                    name: setupData.categoryName,
-                    display_order: 1
-                }])
-                .select()
-                .single();
-
-            // Item
-            if (category) {
-                await supabase.from('items').insert([{
-                    restaurant_id: restaurantId,
-                    category_id: category.id,
-                    name: setupData.itemName,
-                    price: parseFloat(setupData.itemPrice),
-                    is_available: true
-                }]);
-            }
-
             setCreatedRestaurantId(restaurantId);
-            setStep(3); // Go to Plan Selection
-
+            setStep(2); // Move to Config
         } catch (err: any) {
             console.error(err);
             setError(err.message || "Une erreur est survenue.");
@@ -168,17 +71,80 @@ export const OnboardingWizard: React.FC = () => {
         }
     };
 
+    // Step 2: Configuration (Tables)
+    const handleStep2 = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            if (!createdRestaurantId) throw new Error("Restaurant ID manquant.");
+
+            // Create Tables
+            const tables = Array.from({ length: setupData.tables }, (_, i) => ({
+                restaurant_id: createdRestaurantId,
+                table_number: `${i + 1}`,
+                qr_code_url: `https://tapzy.app/m/${restaurantData.slug}?table=${i + 1}`
+            }));
+
+            const { error } = await supabase.from('tables').insert(tables);
+            if (error) throw error;
+
+            setStep(3); // Move to Plan Calculation
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Step 4: Payment Trigger
+    const handlePayment = async () => {
+        if (!createdRestaurantId) return;
+        setLoading(true);
+
+        try {
+            const priceId = calculatedPlan === 'standard'
+                ? import.meta.env.VITE_STRIPE_PRICE_ID_STANDARD
+                : import.meta.env.VITE_STRIPE_PRICE_ID_PREMIUM;
+
+            const res = await fetch('/api/create-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    priceId,
+                    restaurantId: createdRestaurantId,
+                    email: authData.email,
+                    planType: calculatedPlan, // Pass calculated plan type
+                    successUrl: `${window.location.origin}/onboarding/success`,
+                    cancelUrl: window.location.href
+                })
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text);
+            }
+
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error("Erreur de redirection Stripe.");
+            }
+        } catch (err: any) {
+            setError("Erreur paiement: " + err.message);
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative">
-            <a href="/" className="absolute top-6 left-6 text-slate-400 hover:text-slate-900 transition-colors flex items-center gap-2 text-sm font-bold uppercase tracking-widest">
-                ← Accueil
-            </a>
             <div className="max-w-xl w-full bg-white rounded-[2.5rem] shadow-xl p-6 md:p-12 relative overflow-hidden">
                 {/* Progress Bar */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-slate-100">
                     <div
                         className="h-full bg-blue-600 transition-all duration-500 ease-out"
-                        style={{ width: `${(step / 3) * 100}%` }}
+                        style={{ width: `${(step / 4) * 100}%` }}
                     />
                 </div>
 
@@ -191,232 +157,156 @@ export const OnboardingWizard: React.FC = () => {
                     </h1>
                 </div>
 
-                {step === 1 && (
-                    <form onSubmit={handleSignUp} className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
-                        <div className="text-center mb-8">
-                            <h2 className="text-3xl font-black text-slate-900 mb-2">Commençons !</h2>
-                            <p className="text-slate-500 font-medium">Créez votre compte administrateur pour gérer votre restaurant.</p>
-                        </div>
-
-                        {error && (
-                            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-100">
-                                {error}
-                            </div>
-                        )}
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Email</label>
-                                <input
-                                    type="email"
-                                    required
-                                    className="w-full h-12 md:h-14 px-4 bg-slate-50 rounded-xl border-2 border-slate-100 focus:border-blue-600 focus:ring-0 font-bold text-slate-900 transition-all outline-none placeholder:text-slate-300 placeholder:font-medium"
-                                    placeholder="jean@restaurant.com"
-                                    value={authData.email}
-                                    onChange={e => setAuthData({ ...authData, email: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Mot de passe</label>
-                                <input
-                                    type="password"
-                                    required
-                                    className="w-full h-12 md:h-14 px-4 bg-slate-50 rounded-xl border-2 border-slate-100 focus:border-blue-600 focus:ring-0 font-bold text-slate-900 transition-all outline-none placeholder:text-slate-300 placeholder:font-medium"
-                                    placeholder="••••••••"
-                                    value={authData.password}
-                                    onChange={e => setAuthData({ ...authData, password: e.target.value })}
-                                />
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-xl shadow-blue-500/20"
-                        >
-                            {loading ? 'Création...' : (
-                                <>
-                                    Continuer <ArrowRight size={20} />
-                                </>
-                            )}
-                        </button>
-                    </form>
+                {error && (
+                    <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-100 mb-6">
+                        {error}
+                    </div>
                 )}
 
-                {step === 2 && (
-                    <form onSubmit={handleCreateRestaurant} className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
-                        <div className="text-center mb-8">
-                            <h2 className="text-3xl font-black text-slate-900 mb-2">Votre Restaurant</h2>
-                            <p className="text-slate-500 font-medium">Configurez les informations de base.</p>
+                {/* STEP 1: IDENTITY */}
+                {step === 1 && (
+                    <form onSubmit={handleStep1} className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+                        <div className="text-center mb-6">
+                            <h2 className="text-3xl font-black text-slate-900 mb-2">Identité</h2>
+                            <p className="text-slate-500 font-medium">Créez votre compte et votre établissement.</p>
                         </div>
 
-                        {error && (
-                            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-100">
-                                {error}
-                            </div>
-                        )}
-
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Nom du Restaurant</label>
+                            <input
+                                type="email"
+                                required
+                                className="w-full h-14 px-5 bg-slate-50 rounded-2xl border-2 border-slate-100 focus:border-blue-600 outline-none font-bold text-slate-900 transition-all"
+                                placeholder="Email admin"
+                                value={authData.email}
+                                onChange={e => setAuthData({ ...authData, email: e.target.value })}
+                            />
+                            <input
+                                type="password"
+                                required
+                                className="w-full h-14 px-5 bg-slate-50 rounded-2xl border-2 border-slate-100 focus:border-blue-600 outline-none font-bold text-slate-900 transition-all"
+                                placeholder="Mot de passe"
+                                value={authData.password}
+                                onChange={e => setAuthData({ ...authData, password: e.target.value })}
+                            />
+                            <div className="h-px bg-slate-100 my-4" />
+                            <input
+                                type="text"
+                                required
+                                className="w-full h-14 px-5 bg-slate-50 rounded-2xl border-2 border-slate-100 focus:border-blue-600 outline-none font-bold text-slate-900 transition-all"
+                                placeholder="Nom du Restaurant"
+                                value={restaurantData.name}
+                                onChange={e => setRestaurantData({ ...restaurantData, name: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-') })}
+                            />
+                            <div className="relative">
+                                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">tapzy.app/m/</span>
                                 <input
                                     type="text"
                                     required
-                                    className="w-full h-12 md:h-14 px-4 bg-slate-50 rounded-xl border-2 border-slate-100 focus:border-blue-600 focus:ring-0 font-bold text-slate-900 transition-all outline-none placeholder:text-slate-300 placeholder:font-medium"
-                                    placeholder="Le Petit Bistro"
-                                    value={restaurantData.name}
-                                    onChange={e => setRestaurantData({ ...restaurantData, name: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-') })}
+                                    className="w-full h-14 pl-28 pr-5 bg-slate-50 rounded-2xl border-2 border-slate-100 focus:border-blue-600 outline-none font-bold text-slate-900 transition-all"
+                                    placeholder="slug"
+                                    value={restaurantData.slug}
+                                    onChange={e => setRestaurantData({ ...restaurantData, slug: e.target.value })}
                                 />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Identifiant (Slug)</label>
-                                <div className="flex items-center">
-                                    <span className="h-12 md:h-14 flex items-center px-4 bg-slate-100 rounded-l-xl border-y-2 border-l-2 border-slate-100 text-slate-500 font-bold text-xs md:text-sm whitespace-nowrap">tapzy.app/m/</span>
-                                    <input
-                                        type="text"
-                                        required
-                                        className="flex-1 h-12 md:h-14 px-4 bg-slate-50 rounded-r-xl border-2 border-l-0 border-slate-100 focus:border-blue-600 focus:border-l-2 focus:ring-0 font-bold text-slate-900 transition-all outline-none placeholder:text-slate-300 placeholder:font-medium min-w-0"
-                                        placeholder="le-petit-bistro"
-                                        value={restaurantData.slug}
-                                        onChange={e => setRestaurantData({ ...restaurantData, slug: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-
-
-                        <div className="p-6 bg-blue-50/50 rounded-2xl border-2 border-blue-100/50 space-y-4">
-                            <p className="text-xs font-black uppercase tracking-widest text-blue-400">Configuration Rapide (modifiable plus tard)</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Nombre de tables</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        className="w-full h-12 px-3 bg-white rounded-lg border-2 border-slate-100 font-bold text-slate-900 focus:border-blue-600 outline-none transition-colors"
-                                        value={setupData.tables}
-                                        onChange={e => setSetupData({ ...setupData, tables: parseInt(e.target.value) })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">1er article (ex: Café)</label>
-                                    <input
-                                        type="text"
-                                        className="w-full h-12 px-3 bg-white rounded-lg border-2 border-slate-100 font-bold text-slate-900 focus:border-blue-600 outline-none transition-colors"
-                                        value={setupData.itemName}
-                                        onChange={e => setSetupData({ ...setupData, itemName: e.target.value })}
-                                    />
-                                </div>
                             </div>
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/20"
+                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2"
                         >
-                            {loading ? 'Configuration...' : (
-                                <>
-                                    Terminer & Tester <Check size={20} />
-                                </>
-                            )}
+                            {loading ? 'Création...' : <>Suivant <ArrowRight size={20} /></>}
                         </button>
                     </form>
                 )}
 
-                {step === 3 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
-                        <div className="text-center mb-8">
-                            <h2 className="text-3xl font-black text-slate-900 mb-2">Choisissez votre Offre</h2>
-                            <p className="text-slate-500 font-medium">Démarrez gratuitement ou passez à la vitesse supérieure.</p>
+                {/* STEP 2: CONFIGURATION */}
+                {step === 2 && (
+                    <form onSubmit={handleStep2} className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
+                        <div className="text-center mb-6">
+                            <h2 className="text-3xl font-black text-slate-900 mb-2">Combien de tables ?</h2>
+                            <p className="text-slate-500 font-medium">Cela déterminera votre plan tarifaire.</p>
                         </div>
 
-                        {error && (
-                            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-100">
-                                {error}
+                        <div className="flex flex-col items-center justify-center space-y-4">
+                            <div className="w-32 h-32 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                <span className="text-5xl font-black text-slate-900">{setupData.tables}</span>
                             </div>
-                        )}
-
-                        <div className="grid grid-cols-1 gap-4">
-                            {/* FREE */}
-                            <button
-                                onClick={() => handleSelectPlan('free')}
-                                disabled={loading}
-                                className="group relative p-6 rounded-2xl border-2 border-slate-100 hover:border-slate-300 transition-all text-left bg-white hover:shadow-lg"
-                            >
-                                <div className="flex justify-between items-start mb-2">
-                                    <div>
-                                        <h3 className="text-lg font-black text-slate-900 uppercase">Gratuit</h3>
-                                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Jusqu'à 50 commandes/mois</p>
-                                    </div>
-                                    <span className="text-2xl font-black text-slate-900">0€</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
-                                    <Check size={16} className="text-emerald-500" /> Gestion de base
-                                </div>
-                            </button>
-
-                            {/* STANDARD */}
-                            <button
-                                onClick={() => handleSelectPlan('standard')}
-                                disabled={loading}
-                                className="group relative p-6 rounded-2xl border-2 border-blue-100 hover:border-blue-600 transition-all text-left bg-blue-50/30 hover:shadow-xl hover:shadow-blue-500/10"
-                            >
-                                <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-bl-xl rounded-tr-xl">Populaire</div>
-                                <div className="flex justify-between items-start mb-2">
-                                    <div>
-                                        <h3 className="text-lg font-black text-blue-900 uppercase flex items-center gap-2">Standard <Star size={16} fill="currentColor" className="text-amber-400" /></h3>
-                                        <p className="text-blue-400 text-xs font-bold uppercase tracking-widest">Commandes illimitées</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-2xl font-black text-slate-900">49€</span>
-                                        <span className="text-xs font-bold text-slate-400 block">/mois</span>
-                                    </div>
-                                </div>
-                                <ul className="space-y-1">
-                                    <li className="flex items-center gap-2 text-slate-600 text-xs font-bold">
-                                        <Check size={14} className="text-blue-500" /> Menu Digital QR
-                                    </li>
-                                    <li className="flex items-center gap-2 text-slate-600 text-xs font-bold">
-                                        <Check size={14} className="text-blue-500" /> Paiement à table (Commissions 1%)
-                                    </li>
-                                </ul>
-                            </button>
-
-                            {/* PREMIUM */}
-                            <button
-                                onClick={() => handleSelectPlan('premium')}
-                                disabled={loading}
-                                className="group relative p-6 rounded-2xl border-2 border-slate-900 bg-slate-900 text-white hover:scale-[1.01] transition-all text-left shadow-2xl"
-                            >
-                                <div className="flex justify-between items-start mb-2">
-                                    <div>
-                                        <h3 className="text-lg font-black text-white uppercase flex items-center gap-2">Premium <ShieldCheck size={16} className="text-emerald-400" /></h3>
-                                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Tout inclus + Support VIP</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-2xl font-black text-white">89€</span>
-                                        <span className="text-xs font-bold text-slate-500 block">/mois</span>
-                                    </div>
-                                </div>
-                                <ul className="space-y-1">
-                                    <li className="flex items-center gap-2 text-slate-300 text-xs font-bold">
-                                        <Check size={14} className="text-emerald-400" /> Multi-comptes Staff
-                                    </li>
-                                    <li className="flex items-center gap-2 text-slate-300 text-xs font-bold">
-                                        <Check size={14} className="text-emerald-400" /> Analytics avancés
-                                    </li>
-                                </ul>
-                            </button>
+                            <input
+                                type="range"
+                                min="1"
+                                max="50"
+                                value={setupData.tables}
+                                onChange={e => setSetupData({ tables: parseInt(e.target.value) })}
+                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                            />
+                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Faites glisser pour ajuster</p>
                         </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2"
+                        >
+                            {loading ? 'Configuration...' : <>Voir mon plan <ArrowRight size={20} /></>}
+                        </button>
+                    </form>
+                )}
+
+                {/* STEP 3: PLAN CALCULATION */}
+                {step === 3 && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500 text-center">
+                        <div>
+                            <h2 className="text-3xl font-black text-slate-900 mb-2">Votre Offre Idéale</h2>
+                            <p className="text-slate-500 font-medium">Basée sur votre configuration de {setupData.tables} tables.</p>
+                        </div>
+
+                        <div className={`p-8 rounded-[2rem] border-4 transition-all transform hover:scale-105 ${calculatedPlan === 'premium' ? 'border-slate-900 bg-slate-900 text-white' : 'border-blue-600 bg-blue-50 text-slate-900'}`}>
+                            <div className="uppercase tracking-[0.3em] font-black text-sm mb-4 opacity-75">
+                                {calculatedPlan === 'premium' ? 'Business Class' : 'Standard'}
+                            </div>
+                            <h3 className="text-5xl font-black mb-2">
+                                {calculatedPlan === 'premium' ? '89€' : '49€'}
+                                <span className="text-lg font-bold opacity-50">/mois</span>
+                            </h3>
+                            <p className="font-bold text-lg mb-6 opacity-90">
+                                {calculatedPlan === 'premium'
+                                    ? 'Pour les grands établissements. Tout illimité + Support VIP.'
+                                    : 'Parfait pour démarrer. Commandes illimitées.'}
+                            </p>
+
+                            <ul className="text-left space-y-3 mb-8 inline-block">
+                                <li className="flex items-center gap-3 font-bold text-sm">
+                                    <Check size={18} className={calculatedPlan === 'premium' ? 'text-emerald-400' : 'text-blue-600'} />
+                                    {setupData.tables} Tables configurées
+                                </li>
+                                <li className="flex items-center gap-3 font-bold text-sm">
+                                    <Check size={18} className={calculatedPlan === 'premium' ? 'text-emerald-400' : 'text-blue-600'} />
+                                    Menu Digital & QR Codes
+                                </li>
+                                <li className="flex items-center gap-3 font-bold text-sm">
+                                    <Check size={18} className={calculatedPlan === 'premium' ? 'text-emerald-400' : 'text-blue-600'} />
+                                    Paiement à table (Stripe)
+                                </li>
+                                {calculatedPlan === 'premium' && (
+                                    <li className="flex items-center gap-3 font-bold text-sm">
+                                        <Check size={18} className="text-emerald-400" />
+                                        Multi-comptes & Stats Avancées
+                                    </li>
+                                )}
+                            </ul>
+                        </div>
+
+                        <button
+                            onClick={handlePayment}
+                            disabled={loading}
+                            className={`w-full h-14 rounded-xl font-black uppercase tracking-widest transition-all shadow-xl flex items-center justify-center gap-2 ${calculatedPlan === 'premium' ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'}`}
+                        >
+                            {loading ? 'Redirection...' : <>Activer mon abonnement <CreditCard size={20} /></>}
+                        </button>
                     </div>
                 )}
             </div>
-
-            <p className="mt-8 text-slate-400 font-medium text-sm">
-                Une question ? <a href="#" className="text-blue-600 font-bold hover:underline">Contactez le support</a>
-            </p>
-        </div >
+        </div>
     );
 };

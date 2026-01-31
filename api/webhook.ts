@@ -57,8 +57,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         .update({
                             subscription_status: 'active',
                             stripe_customer_id: session.customer,
-                            // Determine plan based on price ID logic if needed, or metadata
-                            plan_type: 'premium' // simplified for now, ideally derived from price
+                            // Derived from metadata passed in create-subscription.ts
+                            plan_type: session.metadata.planType || 'standard'
                         })
                         .eq('id', session.metadata.restaurantId);
                 }

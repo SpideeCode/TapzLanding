@@ -6,7 +6,10 @@ interface Restaurant {
     id: string;
     name: string;
     slug: string;
-    stripe_account_id: string | null;
+    stripe_connect_id: string | null;
+    subscription_status: string | null;
+    plan_type: string | null;
+    payments_enabled: boolean;
     created_at: string;
 }
 
@@ -72,9 +75,9 @@ export const RestaurantManagement: React.FC = () => {
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-gray-50 border-b border-gray-100">
-                            <th className="px-6 py-4 text-sm font-semibold text-gray-600">Nom</th>
-                            <th className="px-6 py-4 text-sm font-semibold text-gray-600">Slug / URL</th>
-                            <th className="px-6 py-4 text-sm font-semibold text-gray-600">Stripe ID</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-gray-600">Nom & Slug</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-gray-600">Plan & Statut</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-gray-600">Paiements (Connect)</th>
                             <th className="px-6 py-4 text-sm font-semibold text-gray-600 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -92,13 +95,37 @@ export const RestaurantManagement: React.FC = () => {
                                 <tr key={res.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="font-bold text-gray-900 text-base">{res.name}</div>
-                                        <div className="text-xs font-medium text-gray-400 font-mono tracking-tight">{res.id}</div>
+                                        <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md inline-block mt-1">/{res.slug}</div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-full text-xs border border-blue-100 italic">/{res.slug}</span>
+                                        <div className="flex flex-col gap-1 items-start">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${res.plan_type === 'premium'
+                                                ? 'bg-purple-50 text-purple-700 border-purple-100'
+                                                : 'bg-slate-50 text-slate-600 border-slate-100'
+                                                }`}>
+                                                {res.plan_type || 'STANDARD'}
+                                            </span>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 ${res.subscription_status === 'active'
+                                                ? 'text-emerald-600'
+                                                : 'text-amber-500'
+                                                }`}>
+                                                <div className={`w-1.5 h-1.5 rounded-full ${res.subscription_status === 'active' ? 'bg-emerald-500' : 'bg-amber-500'
+                                                    }`} />
+                                                {res.subscription_status || 'Inconnu'}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-sm font-bold text-gray-700">{res.stripe_account_id || <span className="text-gray-300 font-normal italic">Non configuré</span>}</span>
+                                        {res.stripe_connect_id ? (
+                                            <div className="flex items-center gap-2">
+                                                <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${res.payments_enabled ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
+                                                    {res.payments_enabled ? 'ACTIF' : 'EN ATTENTE'}
+                                                </span>
+                                                <span className="text-[10px] text-gray-400 font-mono">{res.stripe_connect_id.slice(0, 8)}...</span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-300 italic text-xs">Non connecté</span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end space-x-2">
