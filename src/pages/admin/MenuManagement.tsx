@@ -25,7 +25,7 @@ interface Item {
     is_available: boolean;
 }
 
-export const MenuManagement: React.FC = () => {
+export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurantId: propRestaurantId }) => {
     const [restaurantId, setRestaurantId] = useState<string | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [items, setItems] = useState<Item[]>([]);
@@ -49,6 +49,11 @@ export const MenuManagement: React.FC = () => {
 
     useEffect(() => {
         const init = async () => {
+            if (propRestaurantId) {
+                setRestaurantId(propRestaurantId);
+                fetchData(propRestaurantId);
+                return;
+            }
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
@@ -59,7 +64,7 @@ export const MenuManagement: React.FC = () => {
             }
         };
         init();
-    }, []);
+    }, [propRestaurantId]);
 
     const fetchData = async (resId: string) => {
         setLoading(true);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { CheckCircle, LayoutDashboard, QrCode, ArrowRight, Star, ShieldCheck, Zap } from 'lucide-react';
+import { CheckCircle, LayoutDashboard, QrCode, ArrowRight, Zap, ShieldCheck } from 'lucide-react';
 
 export const OnboardingSuccess: React.FC = () => {
     const navigate = useNavigate();
@@ -46,6 +46,7 @@ export const OnboardingSuccess: React.FC = () => {
     );
 
     const qrUrl = restaurant ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${origin}/m/${restaurant.slug}?table=1` : '';
+    const planName = restaurant?.plan_type === 'premium' ? 'Premium' : 'Standard';
 
     return (
         <div className="min-h-screen bg-slate-50 py-12 px-6 relative">
@@ -63,8 +64,18 @@ export const OnboardingSuccess: React.FC = () => {
                         C'EST <span className="text-emerald-500 not-italic">PRÊT !</span>
                     </h1>
                     <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">
-                        Votre restaurant <span className="text-slate-900 font-black">{restaurant?.name}</span> est configuré en mode <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-black text-sm uppercase tracking-wider">Essai</span>.
+                        Votre restaurant <span className="text-slate-900 font-black">{restaurant?.name}</span> est actif.
                     </p>
+
+                    <div className="mt-8 flex justify-center gap-4">
+                        <span className={`px-4 py-2 rounded-xl text-sm font-black uppercase tracking-widest border border-slate-200 flex items-center gap-2 ${restaurant?.subscription_status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                            {restaurant?.subscription_status === 'active' ? <CheckCircle size={16} /> : <Zap size={16} />}
+                            {restaurant?.subscription_status === 'active' ? 'Abonnement Actif' : 'En attente de paiement'}
+                        </span>
+                        <span className="px-4 py-2 rounded-xl bg-purple-50 text-purple-700 text-sm font-black uppercase tracking-widest border border-slate-200 flex items-center gap-2">
+                            <ShieldCheck size={16} /> Plan {planName}
+                        </span>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -75,7 +86,7 @@ export const OnboardingSuccess: React.FC = () => {
                         </div>
                         <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
                             <QrCode className="text-blue-600" />
-                            Start Test
+                            Tester mon QR Code
                         </h2>
 
                         <div className="flex flex-col items-center justify-center space-y-6">
@@ -113,7 +124,7 @@ export const OnboardingSuccess: React.FC = () => {
                             Espace Administrateur
                         </h2>
                         <p className="text-slate-300 font-medium mb-8 relative z-10 leading-relaxed">
-                            Accédez à votre tableau de bord pour voir les commandes arriver en temps réel.
+                            Accédez à votre tableau de bord pour configurer votre menu, gérer vos tables et suivre vos commandes.
                         </p>
 
                         {/* Use standard anchor to force refresh and break SPA loops */}
@@ -123,91 +134,6 @@ export const OnboardingSuccess: React.FC = () => {
                         >
                             Accéder au Dashboard <ArrowRight size={20} />
                         </a>
-                    </div>
-                </div>
-
-                {/* Pricing Plans */}
-                <div className="pt-12 border-t-2 border-slate-100">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl font-black text-slate-900 mb-4">Passez au niveau supérieur</h2>
-                        <p className="text-slate-500 font-medium">Choisissez un plan pour activer votre restaurant en production.</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Starter */}
-                        <div className="bg-white p-8 rounded-[2rem] border-2 border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300">
-                            <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Démarrage</span>
-                            <div className="mt-4 mb-6">
-                                <span className="text-4xl font-black text-slate-900">29€</span>
-                                <span className="text-slate-400 font-bold">/mois</span>
-                            </div>
-                            <ul className="space-y-4 mb-8">
-                                <li className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                    <CheckCircle size={16} className="text-emerald-500" /> Jusqu'à 15 tables
-                                </li>
-                                <li className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                    <CheckCircle size={16} className="text-emerald-500" /> Menu illimité
-                                </li>
-                                <li className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                    <CheckCircle size={16} className="text-emerald-500" /> Support email
-                                </li>
-                            </ul>
-                            <button className="w-full py-4 rounded-xl border-2 border-slate-200 font-black text-xs uppercase tracking-widest hover:border-slate-900 hover:bg-slate-900 hover:text-white transition-all">
-                                Choisir ce plan
-                            </button>
-                        </div>
-
-                        {/* Pro (Highlighted) */}
-                        <div className="bg-slate-900 text-white p-8 rounded-[2rem] shadow-2xl relative overflow-hidden transform md:-translate-y-4">
-                            <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-blue-500 to-purple-500" />
-                            <div className="flex justify-between items-start">
-                                <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Recommandé</span>
-                                <Star className="text-yellow-400 fill-yellow-400" size={20} />
-                            </div>
-                            <div className="mt-4 mb-6">
-                                <span className="text-5xl font-black">49€</span>
-                                <span className="text-slate-400 font-bold">/mois</span>
-                            </div>
-                            <ul className="space-y-4 mb-8">
-                                <li className="flex items-center gap-3 text-sm font-bold text-slate-200">
-                                    <CheckCircle size={16} className="text-blue-400" /> Tables illimitées
-                                </li>
-                                <li className="flex items-center gap-3 text-sm font-bold text-slate-200">
-                                    <CheckCircle size={16} className="text-blue-400" /> Statistiques Avancées
-                                </li>
-                                <li className="flex items-center gap-3 text-sm font-bold text-slate-200">
-                                    <CheckCircle size={16} className="text-blue-400" /> Support Prioritaire 24/7
-                                </li>
-                                <li className="flex items-center gap-3 text-sm font-bold text-slate-200">
-                                    <CheckCircle size={16} className="text-blue-400" /> Personnalisation QR
-                                </li>
-                            </ul>
-                            <button className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-blue-600/30">
-                                Commencer l'essai gratuit
-                            </button>
-                        </div>
-
-                        {/* Enterprise */}
-                        <div className="bg-white p-8 rounded-[2rem] border-2 border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300">
-                            <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Entreprise</span>
-                            <div className="mt-4 mb-6">
-                                <span className="text-4xl font-black text-slate-900">Sur mesure</span>
-                            </div>
-                            <ul className="space-y-4 mb-8">
-                                <li className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                    <ShieldCheck size={16} className="text-purple-500" /> Multi-restaurants
-                                </li>
-                                <li className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                    <ShieldCheck size={16} className="text-purple-500" /> API Access
-                                </li>
-                                <li className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                    <ShieldCheck size={16} className="text-purple-500" /> Account Manager dédié
-                                </li>
-                            </ul>
-                            <button className="w-full py-4 rounded-xl border-2 border-slate-200 font-black text-xs uppercase tracking-widest hover:border-slate-900 hover:bg-slate-900 hover:text-white transition-all">
-                                Contacter l'équipe
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>

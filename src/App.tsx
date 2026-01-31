@@ -15,6 +15,7 @@ import { RestaurantManagement } from './pages/superadmin/Restaurants';
 import { StaffManagement as SuperAdminStaff } from './pages/superadmin/Staff';
 import { MenuManagement } from './pages/superadmin/MenuManagement';
 import { PublicMenu } from './pages/PublicMenu';
+import { RestaurantManager } from './pages/superadmin/RestaurantManager';
 
 // Admin Pages
 import { AdminLayout } from './components/layouts/AdminLayout';
@@ -181,6 +182,7 @@ export default function App() {
                   <Routes>
                     <Route index element={<SuperAdminDashboard />} />
                     <Route path="restaurants" element={<RestaurantManagement />} />
+                    <Route path="restaurant/:id" element={<RestaurantManager />} />
                     <Route path="staff" element={<SuperAdminStaff />} />
                     <Route path="menus" element={<MenuManagement />} />
                     <Route path="tables" element={<TableManagement />} />

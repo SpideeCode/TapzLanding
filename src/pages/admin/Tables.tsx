@@ -14,7 +14,7 @@ interface Restaurant {
     name: string;
 }
 
-export const TableManagement: React.FC = () => {
+export const TableManagement: React.FC<{ restaurantId?: string }> = ({ restaurantId: propRestaurantId }) => {
     const [userProfile, setUserProfile] = useState<{ role: string, restaurant_id: string | null } | null>(null);
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [selectedResId, setSelectedResId] = useState<string>('');
@@ -28,6 +28,10 @@ export const TableManagement: React.FC = () => {
 
     useEffect(() => {
         const fetchInitialData = async () => {
+            if (propRestaurantId) {
+                setSelectedResId(propRestaurantId);
+                return;
+            }
             try {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) return;
@@ -47,7 +51,7 @@ export const TableManagement: React.FC = () => {
             }
         };
         fetchInitialData();
-    }, []);
+    }, [propRestaurantId]);
 
     const fetchTables = async () => {
         if (!selectedResId) return;
