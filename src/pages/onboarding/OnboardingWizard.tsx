@@ -107,32 +107,28 @@ export const OnboardingWizard: React.FC = () => {
                 ? import.meta.env.VITE_STRIPE_PRICE_ID_STANDARD
                 : import.meta.env.VITE_STRIPE_PRICE_ID_PREMIUM;
 
-            const res = await fetch('/api/create-subscription', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+            const { data, error } = await supabase.functions.invoke('create-subscription', {
+                body: {
                     priceId,
                     restaurantId: createdRestaurantId,
                     email: authData.email,
-                    planType: calculatedPlan, // Pass calculated plan type
+                    planType: calculatedPlan,
                     successUrl: `${window.location.origin}/onboarding/success`,
                     cancelUrl: window.location.href
-                })
+                }
             });
 
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(text);
-            }
+            if (error) throw error;
+            if (data.error) throw new Error(data.error);
 
-            const data = await res.json();
             if (data.url) {
                 window.location.href = data.url;
             } else {
                 throw new Error("Erreur de redirection Stripe.");
             }
         } catch (err: any) {
-            setError("Erreur paiement: " + err.message);
+            console.error(err);
+            setError("Erreur paiement: " + (err.message || 'Erreur inconnue'));
             setLoading(false);
         }
     };
