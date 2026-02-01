@@ -41,7 +41,13 @@ serve(async (req) => {
         }
 
         const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+        if (!supabaseServiceKey) {
+            console.error('CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing!');
+            throw new Error('Server Configuration Error: Missing Service Role Key');
+        }
+
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         console.log(`Received event: ${event.type}`);
