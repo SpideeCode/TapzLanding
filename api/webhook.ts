@@ -27,6 +27,7 @@ const getRawBody = async (req: VercelRequest): Promise<Buffer> => {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+    console.log('Webhook Handler Invoked. Method:', req.method);
     if (req.method !== 'POST') {
         return res.status(405).send('Method Not Allowed');
     }
@@ -38,8 +39,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let rawBody;
 
     try {
+        console.log('Verifying signature...');
         rawBody = await getRawBody(req);
         event = stripe.webhooks.constructEvent(rawBody, sig!, webhookSecret!);
+        console.log('Event constructed successfully:', event.type);
     } catch (err: any) {
         console.error(`Webhook Error: ${err.message}`);
         return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -51,8 +54,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             // --- 1. SaaS Subscription Events ---
             case 'checkout.session.completed': {
                 const session = event.data.object as any;
+                console.log('Processing checkout.session.completed. Metadata:', session.metadata);
+
                 if (session.metadata?.type === 'subscription_upgrade') {
-                    await supabase
+                    console.log('Updating restaurant subscription for ID:', session.metadata.restaurantId);
+
+                    const updateResult = await supabase
                         .from('restaurants')
                         .update({
                             subscription_status: 'active',
@@ -60,7 +67,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             // Derived from metadata passed in create-subscription.ts
                             plan_type: session.metadata.planType || 'standard'
                         })
-                        .eq('id', session.metadata.restaurantId);
+                        .eq('id', session.metadata.restaurantId)
+                        .select();
+
+                    console.log('Supabase Update Result:', JSON.stringify(updateResult, null, 2));
+
+                    if (updateResult.error) {
+                        console.error('Supabase Update Failed:', updateResult.error);
+                    }
+                } else {
+                    console.log('Ignored: Metadata type is not subscription_upgrade:', session.metadata?.type);
                 }
                 break;
             }
