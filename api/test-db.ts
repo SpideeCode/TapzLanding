@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .from('orders')
             .insert({
                 restaurant_id: restaurant.id,
-                total_amount: 0.50,
+                total_price: 0.50,
                 status: 'paid',
                 // table_id is intentionally omitted/null to test constraints
             })
