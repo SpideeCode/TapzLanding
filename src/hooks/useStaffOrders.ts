@@ -12,7 +12,7 @@ export interface OrderItem {
 
 export interface OrderWithDetails {
     id: string;
-    status: 'pending' | 'preparing' | 'served' | 'paid';
+    status: 'pending' | 'preparing' | 'served' | 'paid' | 'completed';
     total_price: number;
     created_at: string;
     table_id: string | null;

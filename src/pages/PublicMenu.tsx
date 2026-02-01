@@ -24,6 +24,7 @@ interface Restaurant {
     primary_color: string | null;
     background_color: string | null;
     font_color: string | null;
+    payments_enabled: boolean;
 }
 
 interface Category {
@@ -114,6 +115,7 @@ export const PublicMenu: React.FC = () => {
 
 
     // --- Checkout Logic ---
+    // --- Checkout Logic ---
     const handleCheckout = async () => {
         if (!restaurant || cart.length === 0) return;
         if (!tableNumber) {
@@ -123,35 +125,40 @@ export const PublicMenu: React.FC = () => {
 
         setIsSubmitting(true);
         try {
+            // Check if payments are enabled
+            if (!restaurant.payments_enabled) {
+                throw new Error("Ce restaurant n'a pas encore activé les paiements en ligne.");
+            }
+
             const { data: tableData } = await supabase.from('tables').select('id').eq('restaurant_id', restaurant.id).eq('table_number', tableNumber).single();
             const tableId = tableData?.id || null;
 
-            const { data: order, error: orderError } = await supabase.from('orders').insert([{
-                restaurant_id: restaurant.id,
-                table_id: tableId,
-                total_price: totalPrice,
-                status: 'pending'
-            }]).select().single();
+            // Call Stripe Checkout API
+            const response = await fetch('/api/create-client-checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cart: cart,
+                    restaurantId: restaurant.id,
+                    tableId: tableId,
+                    slug: slug // Pass slug for cancel_url
+                })
+            });
 
-            if (orderError) throw orderError;
+            const data = await response.json();
 
-            const orderItems = cart.map(item => ({
-                order_id: order.id,
-                item_id: item.id,
-                quantity: item.quantity,
-                unit_price: item.price
-            }));
+            if (!response.ok) throw new Error(data.error || 'Erreur lors du paiement');
 
-            const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
-            if (itemsError) throw itemsError;
+            if (data.url) {
+                // Redirect to Stripe
+                window.location.href = data.url;
+            } else {
+                throw new Error("Impossible de générer le lien de paiement");
+            }
 
-            setOrderSuccess(true);
-            clearCart();
-            setShowCartModal(false);
         } catch (err: any) {
             alert('Erreur: ' + err.message);
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Only stop loading if error. If success, we redirect.
         }
     };
 

@@ -8,7 +8,8 @@ import {
     ChefHat,
     Truck,
     AlertCircle,
-    MoreHorizontal
+    MoreHorizontal,
+    CreditCard
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -55,9 +56,9 @@ export const LiveOrders: React.FC = () => {
         resolveRestaurant();
     }, [slug]);
 
-    // ... imports stay same
+    // Columns: Start with Paid (To Prepare)
     const columns = [
-        { id: 'pending', name: 'À Préparer', icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
+        { id: 'paid', name: 'À Préparer', icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
         { id: 'preparing', name: 'En Cuisine', icon: ChefHat, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
         { id: 'served', name: 'Servi / Prêt', icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
     ];
@@ -67,9 +68,9 @@ export const LiveOrders: React.FC = () => {
     const handleNextStatus = async (order: OrderWithDetails) => {
         try {
             const statusMap: Record<string, OrderWithDetails['status']> = {
-                'pending': 'preparing',
+                'paid': 'preparing',
                 'preparing': 'served',
-                'served': 'paid'
+                'served': 'completed'
             };
             const next = statusMap[order.status];
             if (next) {
@@ -122,7 +123,7 @@ export const LiveOrders: React.FC = () => {
                     <div className="bg-white px-8 py-5 rounded-[2rem] border-2 border-slate-200 shadow-sm relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-full -mr-12 -mt-12 transition-transform duration-500 group-hover:scale-110" />
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-1 relative z-10">À traiter</span>
-                        <span className="text-3xl font-black italic text-slate-900 relative z-10">{getOrdersByStatus('pending').length + getOrdersByStatus('preparing').length}</span>
+                        <span className="text-3xl font-black italic text-slate-900 relative z-10">{getOrdersByStatus('paid').length + getOrdersByStatus('preparing').length}</span>
                     </div>
                 </div>
             </header>
@@ -164,6 +165,11 @@ export const LiveOrders: React.FC = () => {
                                                 </div>
                                                 <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">#{order.id.slice(0, 8)}</span>
                                             </div>
+                                            {/* Payment Badge */}
+                                            <div className="bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-2">
+                                                <CreditCard size={14} className="text-emerald-500" />
+                                                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Payé</span>
+                                            </div>
                                         </div>
                                         <button className="p-3 text-slate-300 hover:text-slate-900 transition-colors bg-white rounded-xl shadow-sm border-2 border-slate-100">
                                             <MoreHorizontal size={20} strokeWidth={2.5} />
@@ -190,12 +196,12 @@ export const LiveOrders: React.FC = () => {
                                             onClick={() => handleNextStatus(order)}
                                             className={`
                                                 w-full py-4 md:py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg
-                                                ${order.status === 'pending' ? 'bg-slate-900 text-white hover:bg-black shadow-slate-900/10' :
+                                                ${order.status === 'paid' ? 'bg-slate-900 text-white hover:bg-black shadow-slate-900/10' :
                                                     order.status === 'preparing' ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20' :
                                                         'bg-gray-50 text-gray-400 border border-slate-100 shadow-none'}
                                             `}
                                         >
-                                            {order.status === 'pending' && (
+                                            {order.status === 'paid' && (
                                                 <>
                                                     <ChefHat size={16} strokeWidth={3} />
                                                     Lancer la cuisine

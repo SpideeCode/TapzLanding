@@ -15,6 +15,7 @@ import { RestaurantManagement } from './pages/superadmin/Restaurants';
 import { StaffManagement as SuperAdminStaff } from './pages/superadmin/Staff';
 import { MenuManagement } from './pages/superadmin/MenuManagement';
 import { PublicMenu } from './pages/PublicMenu';
+import { OrderSuccess } from './pages/public/OrderSuccess';
 import { RestaurantManager } from './pages/superadmin/RestaurantManager';
 
 // Admin Pages
@@ -170,6 +171,7 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
             <Route path="/m/:slug" element={<PublicMenu />} />
+            <Route path="/order-success" element={<OrderSuccess />} />
 
             {/* Onboarding Routes */}
             <Route path="/onboarding" element={<OnboardingWizard />} />
