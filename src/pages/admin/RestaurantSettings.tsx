@@ -520,6 +520,7 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                     <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Paiements Clients</h3>
                                     <div className="p-6 bg-slate-50 rounded-[2rem] border-2 border-slate-100 flex flex-col gap-4 h-full justify-between">
 
+
                                         {restaurant?.payments_enabled ? (
                                             <>
                                                 <div className="flex items-center gap-3 text-emerald-600 font-black uppercase tracking-widest text-xs bg-emerald-50 p-4 rounded-xl border border-emerald-100">
@@ -539,6 +540,32 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                                         </span>
                                                     </div>
                                                 </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleConnectStripe}
+                                                    disabled={actionLoading}
+                                                    className="w-full py-3 mt-2 bg-white border-2 border-slate-200 hover:border-slate-900 text-slate-500 hover:text-slate-900 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all"
+                                                >
+                                                    Accéder au Dashboard Stripe
+                                                </button>
+                                            </>
+                                        ) : restaurant?.stripe_connect_id ? (
+                                            <>
+                                                <div className="flex items-center gap-3 text-orange-600 font-black uppercase tracking-widest text-xs bg-orange-50 p-4 rounded-xl border border-orange-100">
+                                                    <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                                                    Validation en cours
+                                                </div>
+                                                <p className="text-sm font-medium text-slate-500">
+                                                    Votre compte Stripe est créé ({restaurant.stripe_connect_id}). Veuillez finaliser l'inscription ou attendre la validation.
+                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleConnectStripe}
+                                                    disabled={actionLoading}
+                                                    className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2"
+                                                >
+                                                    {actionLoading ? 'Chargement...' : 'Finaliser / Vérifier le statut'} <ArrowRight size={16} />
+                                                </button>
                                             </>
                                         ) : (
                                             <>
@@ -551,10 +578,11 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                                     disabled={actionLoading}
                                                     className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
                                                 >
-                                                    Activer les paiements <ArrowRight size={16} />
+                                                    {actionLoading ? 'Redirection...' : 'Activer les paiements'} <ArrowRight size={16} />
                                                 </button>
                                             </>
                                         )}
+
                                     </div>
                                 </div>
                             </div>
