@@ -215,6 +215,41 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
         }
     };
 
+    const handleSyncSubscription = async () => {
+        if (!restaurant) return;
+        setActionLoading(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+
+            const response = await fetch('/api/sync-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    restaurantId: restaurant.id,
+                    email: user?.email
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setMessage({ type: 'success', text: 'Abonnement récupéré avec succès !' });
+                // Optimistic update
+                setRestaurant(prev => prev ? {
+                    ...prev,
+                    ...data.data
+                } : null);
+            } else {
+                throw new Error(data.error || 'Erreur lors de la récupération.');
+            }
+        } catch (error: any) {
+            console.error('Sync Sub Error:', error);
+            setMessage({ type: 'error', text: error.message || 'Impossible de synchroniser.' });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const handleSyncStatus = async () => {
         if (!restaurant?.stripe_connect_id) return;
         setActionLoading(true); // Reuse loading state
@@ -235,7 +270,8 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                 setRestaurant(prev => prev ? { ...prev, payments_enabled: true } : null);
                 setMessage({ type: 'success', text: 'Statut Stripe synchronisé : Compte Actif !' });
             } else if (data.success) {
-                setMessage({ type: 'error', text: 'Compte Stripe toujours en attente de validation.' });
+                const details = data.details ? ` (Charges: ${data.details.charges_enabled}, Details: ${data.details.details_submitted})` : '';
+                setMessage({ type: 'error', text: `Compte Stripe en attente.${details}` });
             } else {
                 throw new Error(data.error || 'Erreur de synchronisation');
             }
@@ -561,6 +597,17 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                         >
                                             Gérer ma facturation
                                         </button>
+
+                                        {(restaurant?.subscription_status === 'trial' || !restaurant?.subscription_status) && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.preventDefault(); handleSyncSubscription(); }}
+                                                className="w-full text-center text-[10px] font-bold text-slate-400 hover:text-blue-600 underline mt-2"
+                                            >
+                                                J'ai déjà payé (Restaurer l'abonnement)
+                                            </button>
+                                        )}
+
                                     </div>
                                 </div>
 
