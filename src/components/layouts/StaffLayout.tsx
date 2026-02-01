@@ -6,7 +6,8 @@ import {
     Utensils,
     Menu as MenuIcon,
     X,
-    Bell
+    Bell,
+    History
 } from 'lucide-react';
 
 
@@ -28,6 +29,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
 
     const navigation = [
         { name: 'Commandes Live', href: `/staff/${slug}`, icon: ClipboardList },
+        { name: 'Historique', href: `/staff/${slug}/history`, icon: History },
         // Future additions: { name: 'Stock / Menu', href: `/staff/${slug}/menu`, icon: Utensils },
     ];
 

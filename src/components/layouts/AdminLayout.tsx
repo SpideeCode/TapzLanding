@@ -11,7 +11,8 @@ import {
     Coffee,
     Utensils,
     QrCode,
-    Store
+    Store,
+    History
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -22,6 +23,7 @@ interface AdminLayoutProps {
 const navigation = [
     { name: 'Tableau de bord', href: '/admin', icon: LayoutDashboard },
     { name: 'Commandes', href: '/admin/orders', icon: ClipboardList },
+    { name: 'Historique', href: '/admin/history', icon: History },
     { name: 'Menu & Cartes', href: '/admin/menu', icon: Coffee },
     { name: 'Tables & QR', href: '/admin/tables', icon: QrCode },
     { name: 'Employés', href: '/admin/staff', icon: Users },

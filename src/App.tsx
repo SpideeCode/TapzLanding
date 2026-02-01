@@ -28,6 +28,7 @@ import { RestaurantSettings } from './pages/admin/RestaurantSettings';
 // Staff Pages
 import { StaffLayout } from './components/layouts/StaffLayout';
 import { LiveOrders as StaffOrders } from './pages/staff/LiveOrders';
+import { OrderHistory } from './pages/staff/OrderHistory';
 import { StaffLogin } from './pages/staff/StaffLogin';
 import { GlobalStaffLogin } from './pages/staff/GlobalStaffLogin';
 import { StaffRoute } from './components/auth/StaffRoute';
@@ -203,6 +204,7 @@ export default function App() {
                     <Route path="settings" element={<RestaurantSettings />} />
                     <Route path="staff" element={<div className="p-8 text-2xl font-bold bg-[#111113] text-white rounded-[2.5rem] border border-white/5 italic">Gestion Staff (À venir)</div>} />
                     <Route path="orders" element={<StaffOrders />} />
+                    <Route path="history" element={<OrderHistory />} />
                   </Routes>
                 </AdminLayout>
               </ProtectedRoute>
@@ -217,6 +219,7 @@ export default function App() {
                 <StaffLayout>
                   <Routes>
                     <Route index element={<StaffOrders />} />
+                    <Route path="history" element={<OrderHistory />} />
                   </Routes>
                 </StaffLayout>
               } />
