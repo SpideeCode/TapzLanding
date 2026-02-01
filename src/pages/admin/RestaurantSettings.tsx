@@ -215,6 +215,55 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
         }
     };
 
+    const handleSyncStatus = async () => {
+        if (!restaurant?.stripe_connect_id) return;
+        setActionLoading(true); // Reuse loading state
+        try {
+            // Using fetch to call Vercel API directly
+            const response = await fetch('/api/check-connect-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ restaurantId: restaurant.id }),
+            });
+
+            const data = await response.json();
+
+            if (data.isReady) {
+                // If ready, update local state immediately
+                setRestaurant(prev => prev ? { ...prev, payments_enabled: true } : null);
+                setMessage({ type: 'success', text: 'Statut Stripe synchronisé : Compte Actif !' });
+            } else if (data.success) {
+                setMessage({ type: 'error', text: 'Compte Stripe toujours en attente de validation.' });
+            } else {
+                throw new Error(data.error || 'Erreur de synchronisation');
+            }
+        } catch (error: any) {
+            console.error('Sync Error:', error);
+            // Don't show error to user unless manually triggered, to avoid noise
+            if (actionLoading) setMessage({ type: 'error', text: 'Impossible de vérifier le statut Stripe' });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    // Auto-sync on mount if needed
+    useEffect(() => {
+        if (restaurant?.stripe_connect_id && !restaurant.payments_enabled) {
+            // Call silently
+            fetch('/api/check-connect-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ restaurantId: restaurant.id }),
+            }).then(res => res.json()).then(data => {
+                if (data.isReady) {
+                    setRestaurant(prev => prev ? { ...prev, payments_enabled: true } : null);
+                }
+            }).catch(console.error);
+        }
+    }, [restaurant?.id, restaurant?.stripe_connect_id, restaurant?.payments_enabled]);
+
     if (loading) {
         return (
             <div className="py-24 text-center">
@@ -558,14 +607,23 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                                 <p className="text-sm font-medium text-slate-500">
                                                     Votre compte Stripe est créé ({restaurant.stripe_connect_id}). Veuillez finaliser l'inscription ou attendre la validation.
                                                 </p>
-                                                <button
-                                                    type="button"
-                                                    onClick={handleConnectStripe}
-                                                    disabled={actionLoading}
-                                                    className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2"
-                                                >
-                                                    {actionLoading ? 'Chargement...' : 'Finaliser / Vérifier le statut'} <ArrowRight size={16} />
-                                                </button>
+                                                <div className="flex flex-col gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleConnectStripe}
+                                                        disabled={actionLoading}
+                                                        className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2"
+                                                    >
+                                                        {actionLoading ? 'Chargement...' : 'Finaliser / Vérifier le statut'} <ArrowRight size={16} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => { e.preventDefault(); handleSyncStatus(); }}
+                                                        className="text-xs font-bold text-slate-400 hover:text-blue-600 underline"
+                                                    >
+                                                        Forcer la synchronisation
+                                                    </button>
+                                                </div>
                                             </>
                                         ) : (
                                             <>
