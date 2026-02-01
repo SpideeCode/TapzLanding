@@ -54,14 +54,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // 4. Create Account Link
-        const accountLink = await stripe.accountLinks.create({
-            account: accountId,
-            refresh_url: `${process.env.VITE_APP_URL}/admin/settings?connect=refresh`,
-            return_url: `${process.env.VITE_APP_URL}/admin/settings?connect=success`,
-            type: 'account_onboarding',
-        });
+        // 4. Check status and generate appropriate link
+        const accountInfo = await stripe.accounts.retrieve(accountId);
 
-        return res.status(200).json({ url: accountLink.url });
+        let url;
+        if (accountInfo.details_submitted) {
+            const loginLink = await stripe.accounts.createLoginLink(accountId);
+            url = loginLink.url;
+        } else {
+            const accountLink = await stripe.accountLinks.create({
+                account: accountId,
+                refresh_url: `${process.env.VITE_APP_URL}/admin/settings?connect=refresh`,
+                return_url: `${process.env.VITE_APP_URL}/admin/settings?connect=success`,
+                type: 'account_onboarding',
+            });
+            url = accountLink.url;
+        }
+
+        return res.status(200).json({ url: url });
     } catch (error: any) {
         console.error('Connect Error:', error);
         return res.status(500).json({ error: error.message });

@@ -68,17 +68,28 @@ serve(async (req) => {
             if (updateError) throw updateError;
         }
 
-        // 4. Create Account Link
-        const redirectBase = returnUrl || appUrl;
-        const accountLink = await stripe.accountLinks.create({
-            account: accountId,
-            refresh_url: `${redirectBase}/admin/settings?connect=refresh`,
-            return_url: `${redirectBase}/admin/settings?connect=success`,
-            type: 'account_onboarding',
-        });
+        // 4. Check status and generate appropriate link
+        const accountInfo = await stripe.accounts.retrieve(accountId);
+
+        let url;
+        if (accountInfo.details_submitted) {
+            // Already onboarded -> Dashboard Login
+            const loginLink = await stripe.accounts.createLoginLink(accountId);
+            url = loginLink.url;
+        } else {
+            // Not finished -> Continue Onboarding
+            const redirectBase = returnUrl || appUrl;
+            const accountLink = await stripe.accountLinks.create({
+                account: accountId,
+                refresh_url: `${redirectBase}/admin/settings?connect=refresh`,
+                return_url: `${redirectBase}/admin/settings?connect=success`,
+                type: 'account_onboarding',
+            });
+            url = accountLink.url;
+        }
 
         return new Response(
-            JSON.stringify({ url: accountLink.url }),
+            JSON.stringify({ url }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
         );
 

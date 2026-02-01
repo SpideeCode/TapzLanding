@@ -167,16 +167,20 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
         try {
             const { data: { user } } = await supabase.auth.getUser();
 
-            const { data, error } = await supabase.functions.invoke('connect-onboarding', {
-                body: {
+            // Use Vercel API
+            const response = await fetch('/api/connect-onboarding', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     restaurantId: restaurant.id,
                     email: user?.email,
                     returnUrl: window.location.origin
-                }
+                })
             });
 
-            if (error) throw error;
-            if (data.error) throw new Error(data.error);
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error || 'Erreur de connexion');
 
             if (data.url) {
                 window.location.href = data.url;
@@ -642,7 +646,7 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                                     disabled={actionLoading}
                                                     className="w-full py-3 mt-2 bg-white border-2 border-slate-200 hover:border-slate-900 text-slate-500 hover:text-slate-900 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all"
                                                 >
-                                                    Accéder au Dashboard Stripe
+                                                    Accéder au Dashboard Stripe (Voir mes revenus)
                                                 </button>
                                             </>
                                         ) : restaurant?.stripe_connect_id ? (
@@ -661,7 +665,7 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                                         disabled={actionLoading}
                                                         className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2"
                                                     >
-                                                        {actionLoading ? 'Chargement...' : 'Finaliser / Vérifier le statut'} <ArrowRight size={16} />
+                                                        {actionLoading ? 'Chargement...' : 'Finaliser ma configuration Stripe'} <ArrowRight size={16} />
                                                     </button>
                                                     <button
                                                         type="button"
