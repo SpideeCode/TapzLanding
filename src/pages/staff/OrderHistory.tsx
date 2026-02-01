@@ -5,7 +5,9 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
     CheckCircle2,
-    XCircle
+    XCircle,
+    Search,
+    Clock
 } from 'lucide-react';
 
 interface OrderHistoryItem {
