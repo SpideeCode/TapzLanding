@@ -41,11 +41,15 @@ serve(async (req) => {
         }
 
         const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+        // Try standard var first, then custom secret
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('TAPZY_SERVICE_ROLE');
 
         if (!supabaseServiceKey) {
-            console.error('CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing!');
-            throw new Error('Server Configuration Error: Missing Service Role Key');
+            console.error('CRITICAL: Service Role Key is missing!');
+            return new Response(
+                JSON.stringify({ error: 'CRITICAL: Service Role Key is missing. Please run: npx supabase secrets set TAPZY_SERVICE_ROLE=...' }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+            );
         }
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
