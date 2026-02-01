@@ -81,8 +81,18 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                     setStaffCode(res.staff_access_code || '');
 
                     // Fetch Stats
-                    const { data: statsData } = await supabase.rpc('get_restaurant_stats', { target_restaurant_id: res.id });
-                    if (statsData) setStats(statsData);
+                    // Fetch Stats directly (No RPC needed)
+                    const { data: orders } = await supabase
+                        .from('orders')
+                        .select('total_amount, application_fee_amount')
+                        .eq('restaurant_id', res.id)
+                        .eq('status', 'paid');
+
+                    if (orders) {
+                        const total_revenue = orders.reduce((acc, order) => acc + (order.total_amount || 0), 0);
+                        const total_commission = orders.reduce((acc, order) => acc + (order.application_fee_amount || 0), 0);
+                        setStats({ total_revenue, total_commission });
+                    }
                 }
             }
             setLoading(false);
