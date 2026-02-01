@@ -92,7 +92,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                                 table_id: session.metadata.tableId || null,
                                 total_price: session.amount_total ? session.amount_total / 100 : 0,
                                 status: 'paid', // Directly paid
-                                application_fee_amount: Math.round((session.amount_total || 0) * 0.01) / 100, // Approximate 1% for stats
+                                application_fee_amount: Math.round((session.amount_total || 0) * 0.01), // Store in cents (Integer)
                             })
                             .select()
                             .single();
