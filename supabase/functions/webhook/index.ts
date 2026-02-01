@@ -44,15 +44,25 @@ serve(async (req) => {
         // Try standard var first, then custom secret
         const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('TAPZY_SERVICE_ROLE');
 
+        console.log(`[DEBUG] SUPABASE_URL: ${supabaseUrl ? 'Present' : 'MISSING'}`);
+        console.log(`[DEBUG] SERVICE_KEY: ${supabaseServiceKey ? 'Present (Length: ' + supabaseServiceKey.length + ')' : 'MISSING'}`);
+
         if (!supabaseServiceKey) {
-            console.error('CRITICAL: Service Role Key is missing!');
+            console.error('[CRITICAL] Service Role Key is missing!');
             return new Response(
                 JSON.stringify({ error: 'CRITICAL: Service Role Key is missing. Please run: npx supabase secrets set TAPZY_SERVICE_ROLE=...' }),
                 { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
             );
         }
 
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        let supabase;
+        try {
+            supabase = createClient(supabaseUrl, supabaseServiceKey);
+            console.log('[DEBUG] Supabase Client Initialized');
+        } catch (clientErr) {
+            console.error('[CRITICAL] Failed to init Supabase Client:', clientErr);
+            throw clientErr;
+        }
 
         console.log(`Received event: ${event.type}`);
 
@@ -60,7 +70,7 @@ serve(async (req) => {
             // --- 1. SaaS Subscription Events ---
             case 'checkout.session.completed': {
                 const session = event.data.object;
-                console.log('Session Metadata:', session.metadata);
+                console.log('[DEBUG] Session Metadata:', JSON.stringify(session.metadata));
 
                 if (session.metadata?.type === 'subscription_upgrade') {
                     console.log(`Processing subscription upgrade for Restaurant: ${session.metadata.restaurantId}`);
