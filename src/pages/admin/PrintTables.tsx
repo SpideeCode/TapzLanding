@@ -117,7 +117,7 @@ export const PrintTables: React.FC = () => {
                         {tables.map(table => (
                             <div
                                 key={table.id}
-                                className="border-2 border-slate-900 rounded-[2rem] p-6 flex flex-col items-center justify-between aspect-[3/4] relative overflow-hidden break-inside-avoid page-break-inside-avoid"
+                                className="border-2 border-slate-900 rounded-[2rem] p-6 flex flex-col items-center justify-between aspect-[3/4] print:aspect-auto print:h-auto print:min-h-0 relative overflow-hidden print:overflow-visible break-inside-avoid page-break-inside-avoid"
                                 style={{ pageBreakInside: 'avoid' }}
                             >
                                 {/* Background decoration */}
@@ -159,13 +159,12 @@ export const PrintTables: React.FC = () => {
                             </div>
                         ))}
                     </div>
-                    {/* CSS for print layout adjustment */}
+                    {/* CSS for print layout adjustment - removed specific height constraint to let flex grow naturally */}
                     <style>{`
                         @media print {
                             .print\\:grid-cols-3 > div {
                                 width: 100% !important;
                                 height: auto !important; 
-                                min-height: 200px;
                             }
                         }
                     `}</style>
