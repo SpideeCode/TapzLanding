@@ -159,14 +159,27 @@ export const PrintTables: React.FC = () => {
                             </div>
                         ))}
                     </div>
+                    {/* CSS for print layout adjustment */}
+                    <style>{`
+                        @media print {
+                            .print\\:grid-cols-3 > div {
+                                width: 100% !important;
+                                height: auto !important; 
+                                min-height: 200px;
+                            }
+                        }
+                    `}</style>
                     <style>{`
                         @media print {
                             @page {
-                                size: A4;
-                                margin: 0;
+                                size: A4 portrait;
+                                margin: 0.5cm;
                             }
                             body {
                                 -webkit-print-color-adjust: exact;
+                                print-color-adjust: exact;
+                                width: 210mm;
+                                height: 297mm;
                             }
                             .print\\:hidden {
                                 display: none !important;
@@ -184,14 +197,13 @@ export const PrintTables: React.FC = () => {
                                 box-shadow: none !important;
                             }
                             .print\\:grid-cols-3 {
-                                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
                                 display: grid !important;
-                            }
-                            .print\\:gap-4 {
-                                gap: 1cm !important;
+                                grid-template-columns: repeat(3, 1fr) !important;
+                                gap: 0.5cm !important;
                             }
                             .print\\:break-inside-avoid {
                                 break-inside: avoid !important;
+                                page-break-inside: avoid !important;
                             }
                         }
                     `}</style>
