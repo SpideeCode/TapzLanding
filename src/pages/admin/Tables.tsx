@@ -59,8 +59,9 @@ export const TableManagement: React.FC<{ restaurantId?: string }> = ({ restauran
         if (!selectedResId) return;
         setLoading(true);
         try {
-            const { data } = await supabase.from('tables').select('*').eq('restaurant_id', selectedResId).order('table_number', { ascending: true });
-            setTables(data || []);
+            const { data } = await supabase.from('tables').select('*').eq('restaurant_id', selectedResId);
+            const sorted = (data || []).sort((a, b) => a.table_number.localeCompare(b.table_number, undefined, { numeric: true }));
+            setTables(sorted);
         } finally {
             setLoading(false);
         }
