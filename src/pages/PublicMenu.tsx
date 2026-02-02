@@ -344,12 +344,7 @@ export const PublicMenu: React.FC = () => {
                                             )}
                                         </div>
 
-                                        {/* 3D Badge */}
-                                        {item.model_3d_glb && (
-                                            <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 z-10 shadow-sm border border-white/10 pointer-events-none">
-                                                <Box size={12} className="text-blue-400" /> 3D
-                                            </div>
-                                        )}
+
 
                                         <div className="flex-1 flex flex-col justify-between py-1">
                                             <div>
