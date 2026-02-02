@@ -34,7 +34,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
     ];
 
     return (
-        <div className="min-h-screen bg-white flex text-slate-900">
+        <div className="h-[100dvh] bg-white flex text-slate-900 overflow-hidden">
             {/* Mobile sidebar overlay */}
             {sidebarOpen && (
                 <div

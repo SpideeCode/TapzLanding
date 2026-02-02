@@ -46,7 +46,7 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({ children }) 
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="h-[100dvh] bg-gray-50 flex overflow-hidden">
             {/* Mobile sidebar overlay */}
             {sidebarOpen && (
                 <div

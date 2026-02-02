@@ -57,7 +57,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     };
 
     return (
-        <div className="h-screen bg-white text-slate-900 flex font-sans selection:bg-blue-500/30 overflow-hidden">
+        <div className="h-[100dvh] bg-white text-slate-900 flex font-sans selection:bg-blue-500/30 overflow-hidden">
             {/* ... (keep mobile overlay) ... */}
             {sidebarOpen && (
                 <div
