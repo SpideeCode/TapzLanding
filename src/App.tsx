@@ -24,6 +24,8 @@ import { AdminDashboardOverview } from './pages/admin/DashboardOverview';
 import { TableManagement } from './pages/admin/Tables';
 import { MenuManagement as AdminMenuManagement } from './pages/admin/MenuManagement';
 import { RestaurantSettings } from './pages/admin/RestaurantSettings';
+import { PrintTables } from './pages/admin/PrintTables';
+
 
 // Staff Pages
 import { StaffLayout } from './components/layouts/StaffLayout';
@@ -201,6 +203,7 @@ export default function App() {
                     <Route index element={<AdminDashboardOverview />} />
                     <Route path="menu" element={<AdminMenuManagement />} />
                     <Route path="tables" element={<TableManagement />} />
+                    <Route path="tables/print" element={<PrintTables />} />
                     <Route path="settings" element={<RestaurantSettings />} />
                     <Route path="staff" element={<div className="p-8 text-2xl font-bold bg-[#111113] text-white rounded-[2.5rem] border border-white/5 italic">Gestion Staff (À venir)</div>} />
                     <Route path="orders" element={<StaffOrders />} />

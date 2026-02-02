@@ -106,7 +106,10 @@ export const PublicMenu: React.FC = () => {
 
                 setCategories(catRes.data || []);
                 setItems(itemRes.data || []);
-                setTables(tableRes.data || []);
+                const sortedTables = (tableRes.data || []).sort((a, b) =>
+                    a.table_number.localeCompare(b.table_number, undefined, { numeric: true })
+                );
+                setTables(sortedTables);
                 if (catRes.data && catRes.data.length > 0) setActiveCategory(catRes.data[0].id);
 
             } catch (err: any) {
@@ -119,12 +122,35 @@ export const PublicMenu: React.FC = () => {
         fetchAllData();
     }, [slug]);
 
-    // Force table selection
+    // --- Table Persistence Logic ---
     useEffect(() => {
-        if (!loading && !tableNumber && tables.length > 0) {
-            setShowTableModal(true);
+        const urlTable = searchParams.get('t');
+        if (urlTable) {
+            localStorage.setItem(`tapzy_table_${slug}`, urlTable);
+        } else {
+            const storedTable = localStorage.getItem(`tapzy_table_${slug}`);
+            if (storedTable) {
+                setSearchParams(prev => {
+                    const newParams = new URLSearchParams(prev);
+                    newParams.set('t', storedTable);
+                    return newParams;
+                });
+            }
         }
-    }, [loading, tableNumber, tables]);
+    }, [searchParams, setSearchParams, slug]);
+
+    // Force table selection only if logic above didn't find anything
+    useEffect(() => {
+        const urlTable = searchParams.get('t');
+        if (!loading && !urlTable && tables.length > 0) {
+            // Small delay to allow the persistence effect to fire first if applicable
+            const timer = setTimeout(() => {
+                const stored = localStorage.getItem(`tapzy_table_${slug}`);
+                if (!stored) setShowTableModal(true);
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [loading, searchParams, tables, slug]);
     // --- Checkout Logic ---
     const handleCheckout = async () => {
         if (!restaurant || cart.length === 0) return;

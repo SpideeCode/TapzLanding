@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Plus, QrCode, Trash2, Edit2, Filter } from 'lucide-react';
+import { Plus, QrCode, Trash2, Edit2, Filter, Printer } from 'lucide-react';
 
 interface Table {
     id: string;
@@ -15,6 +16,7 @@ interface Restaurant {
 }
 
 export const TableManagement: React.FC<{ restaurantId?: string }> = ({ restaurantId: propRestaurantId }) => {
+    const navigate = useNavigate();
     const [userProfile, setUserProfile] = useState<{ role: string, restaurant_id: string | null } | null>(null);
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [selectedResId, setSelectedResId] = useState<string>('');
@@ -129,6 +131,12 @@ export const TableManagement: React.FC<{ restaurantId?: string }> = ({ restauran
                             </select>
                         </div>
                     )}
+                    <button
+                        onClick={() => navigate('/admin/tables/print')}
+                        className="bg-white hover:bg-gray-50 text-slate-900 border-2 border-slate-200 px-6 py-3.5 rounded-2xl font-black text-[10px] shadow-sm transition-all active:scale-95 flex items-center gap-2 w-fit uppercase tracking-widest"
+                    >
+                        <Printer size={18} strokeWidth={3} /> Imprimer QR
+                    </button>
                     <button
                         onClick={() => {
                             setEditingTable(null);
