@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase'; // Assuming a supabase client is configured
+import { supabase } from '../lib/supabase';
+import { DishARView } from './DishARView';
+import { X } from 'lucide-react'; // Assuming a supabase client is configured
 
 interface Item {
     id: string;
@@ -9,6 +11,8 @@ interface Item {
     image_url: string;
     is_available: boolean;
     category_id: string;
+    model_3d_glb?: string;
+    model_3d_usdz?: string;
 }
 
 interface Category {
@@ -25,6 +29,7 @@ export const ClientMenu: React.FC<ClientMenuProps> = ({ restaurantId }) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
     useEffect(() => {
         const fetchMenu = async () => {
@@ -76,15 +81,22 @@ export const ClientMenu: React.FC<ClientMenuProps> = ({ restaurantId }) => {
                                     className="flex bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
                                 >
                                     {item.image_url && (
-                                        <img
-                                            src={item.image_url}
-                                            alt={item.name}
-                                            className="w-24 h-24 object-cover"
-                                        />
+                                        <div onClick={() => setSelectedItem(item)} className="cursor-pointer">
+                                            <img
+                                                src={item.image_url}
+                                                alt={item.name}
+                                                className="w-24 h-24 object-cover"
+                                            />
+                                        </div>
                                     )}
                                     <div className="p-4 flex-1">
                                         <div className="flex justify-between items-start">
-                                            <h3 className="font-semibold text-lg">{item.name}</h3>
+                                            <h3
+                                                className="font-semibold text-lg cursor-pointer hover:text-blue-600 transition-colors"
+                                                onClick={() => setSelectedItem(item)}
+                                            >
+                                                {item.name}
+                                            </h3>
                                             <span className="font-bold text-blue-600">{item.price} €</span>
                                         </div>
                                         {item.description && (
@@ -100,5 +112,61 @@ export const ClientMenu: React.FC<ClientMenuProps> = ({ restaurantId }) => {
                 </section>
             ))}
         </div>
+    );
+    {/* Item Detail Modal with AR */ }
+    {
+        selectedItem && (
+            <div className="fixed inset-0 bg-black/80 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="bg-white w-full max-w-lg rounded-t-[2rem] md:rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh]">
+
+                    {/* Header Image or AR View */}
+                    <div className="relative bg-gray-100 shrink-0">
+                        {selectedItem.model_3d_glb ? (
+                            <div className="aspect-[4/3] w-full">
+                                <DishARView
+                                    glbUrl={selectedItem.model_3d_glb}
+                                    usdzUrl={selectedItem.model_3d_usdz || undefined}
+                                    posterUrl={selectedItem.image_url}
+                                    altText={selectedItem.name}
+                                />
+                            </div>
+                        ) : (
+                            <div className="aspect-video w-full">
+                                <img src={selectedItem.image_url} className="w-full h-full object-cover" alt={selectedItem.name} />
+                            </div>
+                        )}
+
+                        <button
+                            onClick={() => setSelectedItem(null)}
+                            className="absolute top-4 right-4 bg-white/50 backdrop-blur-md p-2 rounded-full text-slate-900 shadow-sm z-50 hover:bg-white"
+                        >
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-8 overflow-y-auto">
+                        <div className="flex justify-between items-start mb-4">
+                            <h2 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase leading-tight">
+                                {selectedItem.name}
+                            </h2>
+                            <span className="text-2xl font-black text-blue-600 tracking-tighter shrink-0">
+                                {selectedItem.price}€
+                            </span>
+                        </div>
+
+                        <p className="text-gray-500 font-medium leading-relaxed mb-8">
+                            {selectedItem.description}
+                        </p>
+
+                        <button className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-sm tracking-widest shadow-xl shadow-blue-500/20 active:scale-95 transition-all">
+                            Ajouter au panier
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+        </div >
     );
 };

@@ -23,6 +23,9 @@ interface Item {
     image_url: string | null;
     category_id: string;
     is_available: boolean;
+    model_3d_glb: string | null;
+    model_3d_usdz: string | null;
+}
 }
 
 export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurantId: propRestaurantId }) => {
@@ -46,6 +49,11 @@ export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurant
     const [itemPrice, setItemPrice] = useState('0');
     const [itemCatId, setItemCatId] = useState('');
     const [itemImage, setItemImage] = useState('');
+
+    // 3D Model State
+    const [fileGlb, setFileGlb] = useState<File | null>(null);
+    const [fileUsdz, setFileUsdz] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         const init = async () => {
@@ -111,33 +119,78 @@ export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurant
         e.preventDefault();
         if (!restaurantId || !itemName || !itemCatId) return;
 
-        const data = {
-            name: itemName,
-            description: itemDesc,
-            price: parseFloat(itemPrice),
-            category_id: itemCatId,
-            restaurant_id: restaurantId,
-            image_url: itemImage || null,
-            is_available: editingItem ? editingItem.is_available : true
-        };
+        setUploading(true);
+        let glbUrl = editingItem?.model_3d_glb || null;
+        let usdzUrl = editingItem?.model_3d_usdz || null;
 
         try {
+            // Upload GLB
+            if (fileGlb) {
+                const fileName = `${Date.now()}_android.glb`;
+                const { error: uploadError } = await supabase.storage
+                    .from('food-models')
+                    .upload(`${restaurantId}/${fileName}`, fileGlb);
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('food-models')
+                    .getPublicUrl(`${restaurantId}/${fileName}`);
+                glbUrl = publicUrl;
+            }
+
+            // Upload USDZ
+            if (fileUsdz) {
+                const fileName = `${Date.now()}_ios.usdz`;
+                const { error: uploadError } = await supabase.storage
+                    .from('food-models')
+                    .upload(`${restaurantId}/${fileName}`, fileUsdz);
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('food-models')
+                    .getPublicUrl(`${restaurantId}/${fileName}`);
+                usdzUrl = publicUrl;
+            }
+
+            const data = {
+                name: itemName,
+                description: itemDesc,
+                price: parseFloat(itemPrice),
+                category_id: itemCatId,
+                restaurant_id: restaurantId,
+                image_url: itemImage || null,
+                is_available: editingItem ? editingItem.is_available : true,
+                model_3d_glb: glbUrl,
+                model_3d_usdz: usdzUrl
+            };
+
             if (editingItem) {
                 await supabase.from('items').update(data).eq('id', editingItem.id);
             } else {
                 await supabase.from('items').insert([data]);
             }
             setShowItemModal(false);
-            setItemName('');
-            setItemDesc('');
-            setItemPrice('0');
-            setItemCatId('');
-            setItemImage('');
+            resetItemForm();
             setEditingItem(null);
             fetchData(restaurantId);
         } catch (error) {
             console.error('Error saving item:', error);
+            alert('Erreur lors de la sauvegarde (voir console)');
+        } finally {
+            setUploading(false);
         }
+    };
+
+    const resetItemForm = () => {
+        setItemName('');
+        setItemDesc('');
+        setItemPrice('0');
+        setItemCatId('');
+        setItemImage('');
+        setFileGlb(null);
+        setFileUsdz(null);
     };
 
     const toggleAvailability = async (item: Item) => {
@@ -200,9 +253,7 @@ export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurant
                     <button
                         onClick={() => {
                             setEditingItem(null);
-                            setItemName('');
-                            setItemDesc('');
-                            setItemPrice('0');
+                            resetItemForm();
                             setItemCatId(categories[0]?.id || '');
                             setShowItemModal(true);
                         }}
@@ -263,7 +314,10 @@ export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurant
                                             setItemDesc(item.description);
                                             setItemPrice(item.price.toString());
                                             setItemCatId(item.category_id);
+                                            setItemCatId(item.category_id);
                                             setItemImage(item.image_url || '');
+                                            setFileGlb(null);
+                                            setFileUsdz(null);
                                             setShowItemModal(true);
                                         }}
                                         className="bg-white text-slate-900 p-3 rounded-xl shadow-xl active:scale-95 hover:bg-blue-600 hover:text-white transition-colors"
@@ -423,6 +477,34 @@ export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurant
                                 />
                             </div>
 
+                            {/* 3D Models Upload */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest ml-4">
+                                        Modèle Android/Web (.glb)
+                                        {editingItem?.model_3d_glb && <span className="text-emerald-500 ml-2">✓ Actif</span>}
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept=".glb"
+                                        onChange={(e) => setFileGlb(e.target.files?.[0] || null)}
+                                        className="w-full bg-gray-50 border-2 border-slate-50 rounded-[1.5rem] py-4 px-6 text-slate-900 font-bold focus:outline-none focus:border-blue-600 transition-all shadow-sm text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:uppercase file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest ml-4">
+                                        Modèle iOS (.usdz)
+                                        {editingItem?.model_3d_usdz && <span className="text-emerald-500 ml-2">✓ Actif</span>}
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept=".usdz"
+                                        onChange={(e) => setFileUsdz(e.target.files?.[0] || null)}
+                                        className="w-full bg-gray-50 border-2 border-slate-50 rounded-[1.5rem] py-4 px-6 text-slate-900 font-bold focus:outline-none focus:border-blue-600 transition-all shadow-sm text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:uppercase file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="flex gap-4 pt-4">
                                 <button
                                     type="button"
@@ -435,7 +517,7 @@ export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurant
                                     type="submit"
                                     className="flex-[2] py-4 rounded-2xl bg-blue-600 text-white font-black uppercase text-[10px] tracking-widest transition-all hover:bg-blue-700 shadow-xl shadow-blue-500/20"
                                 >
-                                    {editingItem ? 'Mettre à jour le plat' : 'Créer le plat'}
+                                    {uploading ? 'Envoi en cours...' : (editingItem ? 'Mettre à jour le plat' : 'Créer le plat')}
                                 </button>
                             </div>
                         </form>
