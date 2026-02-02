@@ -26,7 +26,7 @@ interface Item {
     model_3d_glb: string | null;
     model_3d_usdz: string | null;
 }
-}
+
 
 export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurantId: propRestaurantId }) => {
     const [restaurantId, setRestaurantId] = useState<string | null>(null);

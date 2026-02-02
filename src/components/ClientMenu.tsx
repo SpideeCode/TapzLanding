@@ -166,6 +166,6 @@ export const ClientMenu: React.FC<ClientMenuProps> = ({ restaurantId }) => {
                     </div>
                 )
             }
-        </div >
+        </div>
     );
 };
