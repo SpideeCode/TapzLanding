@@ -11,6 +11,8 @@ export const PrintTables: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const componentRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const restaurantIdParam = searchParams.get('restaurantId');
 
     // Use current origin for the QR code base URL
     const baseUrl = window.location.origin;
@@ -24,11 +26,25 @@ export const PrintTables: React.FC = () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            // Get restaurant
+            let targetRestaurantId = restaurantIdParam;
+
+            // If no param, try to deduce from profile (fallback)
+            if (!targetRestaurantId) {
+                const { data: profile } = await supabase.from('profiles').select('restaurant_id').eq('id', user.id).single();
+                if (profile?.restaurant_id) {
+                    targetRestaurantId = profile.restaurant_id;
+                }
+            }
+
+            if (!targetRestaurantId) {
+                throw new Error("Impossible de trouver le restaurant associé.");
+            }
+
+            // Get restaurant details by ID
             const { data: resData } = await supabase
                 .from('restaurants')
                 .select('*')
-                .eq('owner_id', user.id)
+                .eq('id', targetRestaurantId)
                 .single();
 
             if (resData) {
@@ -38,9 +54,8 @@ export const PrintTables: React.FC = () => {
                     .from('tables')
                     .select('*')
                     .eq('restaurant_id', resData.id)
-                    .order('table_number', { ascending: true }); // Ensure alphanumeric sort might need custom sort if mixed, but standard is fine
+                    .order('table_number', { ascending: true });
 
-                // Sort numerically if possible
                 const sortedTables = (tableData || []).sort((a, b) => {
                     return a.table_number.localeCompare(b.table_number, undefined, { numeric: true });
                 });
@@ -49,6 +64,7 @@ export const PrintTables: React.FC = () => {
             }
         } catch (error) {
             console.error('Error fetching data:', error);
+            setRestaurant(null);
         } finally {
             setLoading(false);
         }
