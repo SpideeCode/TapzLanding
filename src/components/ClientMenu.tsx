@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { DishARView } from './DishARView';
-import { X } from 'lucide-react'; // Assuming a supabase client is configured
+import { X, Box } from 'lucide-react'; // Assuming a supabase client is configured
 
 interface Item {
     id: string;
@@ -52,8 +52,12 @@ export const ClientMenu: React.FC<ClientMenuProps> = ({ restaurantId }) => {
                 .eq('restaurant_id', restaurantId)
                 .eq('is_available', true);
 
-            if (itemError) console.error('Error fetching items:', itemError);
-            else setItems(itemData || []);
+            if (itemError) {
+                console.error('Error fetching items:', itemError);
+            } else {
+                console.log('Fetched items:', itemData); // Debug log
+                setItems(itemData || []);
+            }
 
             setLoading(false);
         };
@@ -81,11 +85,19 @@ export const ClientMenu: React.FC<ClientMenuProps> = ({ restaurantId }) => {
                                     className="flex bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
                                 >
                                     {item.image_url && (
-                                        <div onClick={() => setSelectedItem(item)} className="cursor-pointer">
+                                        <div onClick={() => {
+                                            console.log('Selected Item:', item); // Debug log
+                                            setSelectedItem(item);
+                                        }} className="cursor-pointer relative group">
+                                            {item.model_3d_glb && (
+                                                <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 z-10 shadow-sm border border-white/10">
+                                                    <Box size={12} className="text-blue-400" /> 3D
+                                                </div>
+                                            )}
                                             <img
                                                 src={item.image_url}
                                                 alt={item.name}
-                                                className="w-24 h-24 object-cover"
+                                                className="w-24 h-24 object-cover group-hover:scale-110 transition-transform duration-500"
                                             />
                                         </div>
                                     )}
@@ -93,7 +105,10 @@ export const ClientMenu: React.FC<ClientMenuProps> = ({ restaurantId }) => {
                                         <div className="flex justify-between items-start">
                                             <h3
                                                 className="font-semibold text-lg cursor-pointer hover:text-blue-600 transition-colors"
-                                                onClick={() => setSelectedItem(item)}
+                                                onClick={() => {
+                                                    console.log('Selected Item (Text):', item); // Debug log
+                                                    setSelectedItem(item);
+                                                }}
                                             >
                                                 {item.name}
                                             </h3>
