@@ -122,17 +122,20 @@ export const ClientMenu: React.FC<ClientMenuProps> = ({ restaurantId }) => {
                                                 Ajouter (+)
                                             </button>
 
-                                            {item.model_3d_glb && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedItem(item);
-                                                    }}
-                                                    className="text-xs font-bold px-3 py-1 bg-slate-900 text-white rounded-full hover:bg-slate-700 transition-colors flex items-center gap-1 shadow-sm"
-                                                >
-                                                    <Box size={12} className="text-blue-400" /> 3D
-                                                </button>
-                                            )}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (item.model_3d_glb) setSelectedItem(item);
+                                                }}
+                                                disabled={!item.model_3d_glb}
+                                                className={`text-xs font-bold px-3 py-1 rounded-full transition-colors flex items-center gap-1 shadow-sm ${item.model_3d_glb
+                                                        ? 'bg-slate-900 text-white hover:bg-slate-700'
+                                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                    }`}
+                                            >
+                                                <Box size={12} className={item.model_3d_glb ? "text-blue-400" : "text-gray-300"} />
+                                                {item.model_3d_glb ? '3D' : 'No 3D'}
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
