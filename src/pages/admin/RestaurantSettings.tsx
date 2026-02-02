@@ -370,7 +370,7 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                 {activeTab === 'general' && (
                     <div className="space-y-12 animate-in fade-in slide-in-from-right-8 duration-500">
                         {/* Digital Menu Link Preview */}
-                        <div className="bg-blue-600 p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] flex items-center gap-10 group shadow-2xl shadow-blue-500/20 relative overflow-hidden">
+                        <div className="bg-blue-600 p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] flex flex-col md:flex-row items-center gap-6 md:gap-10 group shadow-2xl shadow-blue-500/20 relative overflow-hidden text-center md:text-left">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 -mr-20 -mt-20 rounded-full group-hover:scale-110 transition-transform duration-700" />
                             <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-blue-600 shadow-xl relative z-10">
                                 <Globe size={32} strokeWidth={2.5} />

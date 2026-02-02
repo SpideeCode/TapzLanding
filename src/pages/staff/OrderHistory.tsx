@@ -130,12 +130,12 @@ export const OrderHistory: React.FC = () => {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-slate-50 border-b border-slate-100">
-                                <th className="px-8 py-6 text-xs font-black uppercase tracking-widest text-slate-400">Date</th>
-                                <th className="px-8 py-6 text-xs font-black uppercase tracking-widest text-slate-400">Commande</th>
-                                <th className="px-8 py-6 text-xs font-black uppercase tracking-widest text-slate-400">Table</th>
-                                <th className="px-8 py-6 text-xs font-black uppercase tracking-widest text-slate-400">Détails</th>
-                                <th className="px-8 py-6 text-xs font-black uppercase tracking-widest text-slate-400">Montant</th>
-                                <th className="px-8 py-6 text-xs font-black uppercase tracking-widest text-slate-400 text-right">Statut</th>
+                                <th className="px-4 py-4 md:px-8 md:py-6 text-xs font-black uppercase tracking-widest text-slate-400">Date</th>
+                                <th className="px-4 py-4 md:px-8 md:py-6 text-xs font-black uppercase tracking-widest text-slate-400">Commande</th>
+                                <th className="px-4 py-4 md:px-8 md:py-6 text-xs font-black uppercase tracking-widest text-slate-400">Table</th>
+                                <th className="px-4 py-4 md:px-8 md:py-6 text-xs font-black uppercase tracking-widest text-slate-400">Détails</th>
+                                <th className="px-4 py-4 md:px-8 md:py-6 text-xs font-black uppercase tracking-widest text-slate-400">Montant</th>
+                                <th className="px-4 py-4 md:px-8 md:py-6 text-xs font-black uppercase tracking-widest text-slate-400 text-right">Statut</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -148,7 +148,7 @@ export const OrderHistory: React.FC = () => {
                             ) : (
                                 filteredOrders.map((order) => (
                                     <tr key={order.id} className="hover:bg-blue-50/50 transition-colors group">
-                                        <td className="px-8 py-6">
+                                        <td className="px-4 py-4 md:px-8 md:py-6">
                                             <div className="flex flex-col">
                                                 <span className="font-bold text-slate-900 text-sm">
                                                     {format(new Date(order.created_at), 'dd MMM yyyy', { locale: fr })}
@@ -159,17 +159,17 @@ export const OrderHistory: React.FC = () => {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-4 py-4 md:px-8 md:py-6">
                                             <span className="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
                                                 #{order.id.slice(0, 8)}
                                             </span>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-4 py-4 md:px-8 md:py-6">
                                             <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-700 border-2 border-slate-50">
                                                 {order.tables?.table_number || '-'}
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-4 py-4 md:px-8 md:py-6">
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-sm font-bold text-slate-900">
                                                     {order.order_items.reduce((acc, item) => acc + item.quantity, 0)} articles
@@ -179,12 +179,12 @@ export const OrderHistory: React.FC = () => {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-4 py-4 md:px-8 md:py-6">
                                             <span className="font-black text-slate-900">
                                                 {order.total_price.toFixed(2)} €
                                             </span>
                                         </td>
-                                        <td className="px-8 py-6 text-right">
+                                        <td className="px-4 py-4 md:px-8 md:py-6 text-right">
                                             <div className="flex justify-end">
                                                 {order.status === 'completed' ? (
                                                     <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-widest border border-emerald-200">

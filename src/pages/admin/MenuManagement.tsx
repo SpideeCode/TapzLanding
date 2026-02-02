@@ -239,7 +239,7 @@ export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurant
                         Configurez vos cartes et vos plats en temps réel
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <button
                         onClick={() => {
                             setEditingCat(null);
@@ -313,7 +313,6 @@ export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurant
                                             setItemName(item.name);
                                             setItemDesc(item.description);
                                             setItemPrice(item.price.toString());
-                                            setItemCatId(item.category_id);
                                             setItemCatId(item.category_id);
                                             setItemImage(item.image_url || '');
                                             setFileGlb(null);
@@ -411,7 +410,7 @@ export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurant
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 md:p-6">
                     <div className="bg-white w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] border border-gray-100 shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
                         <div className="p-6 md:p-10 border-b border-gray-50 flex items-center justify-between shrink-0">
-                            <h3 className="text-3xl font-black text-slate-900 italic tracking-tighter">
+                            <h3 className="text-2xl md:text-3xl font-black text-slate-900 italic tracking-tighter">
                                 {editingItem ? 'MODIFIER LE PLAT' : 'NOUVEAU PLAT'}
                             </h3>
                             <button onClick={() => setShowItemModal(false)} className="text-gray-400 hover:text-slate-900 transition-colors">

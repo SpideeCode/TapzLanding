@@ -173,7 +173,7 @@ export const AdminDashboardOverview: React.FC = () => {
                 </div>
 
                 {/* Time Filters */}
-                <div className="bg-white p-1.5 rounded-2xl border-2 border-slate-100 flex items-center shadow-sm">
+                <div className="bg-white p-1.5 rounded-2xl border-2 border-slate-100 flex flex-wrap justify-center sm:justify-start items-center shadow-sm gap-1 sm:gap-0">
                     {(['today', '7days', '30days', 'year'] as TimeRange[]).map((range) => (
                         <button
                             key={range}

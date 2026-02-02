@@ -107,7 +107,7 @@ export const LiveOrders: React.FC = () => {
     }
 
     return (
-        <div className="h-full flex flex-col">
+        <div className="lg:h-full flex flex-col">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <div>
                     <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter italic uppercase leading-none mb-4">
@@ -128,9 +128,9 @@ export const LiveOrders: React.FC = () => {
                 </div>
             </header>
 
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-10 min-h-0">
+            <div className="lg:flex-1 grid grid-cols-1 lg:grid-cols-3 gap-10 lg:min-h-0">
                 {columns.map((col) => (
-                    <div key={col.id} className="flex flex-col min-h-0">
+                    <div key={col.id} className="flex flex-col lg:min-h-0">
                         <div className="flex items-center justify-between mb-8 px-4">
                             <div className="flex items-center gap-4">
                                 <div className={`p-3 rounded-2xl ${col.bg.replace('10', '50')} ${col.color} border-2 border-slate-200 shadow-sm`}>
@@ -143,7 +143,7 @@ export const LiveOrders: React.FC = () => {
                             </span>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto space-y-8 pr-2 custom-scrollbar pb-10">
+                        <div className="lg:flex-1 lg:overflow-y-auto space-y-8 pr-2 custom-scrollbar pb-10">
                             {getOrdersByStatus(col.id).map((order) => (
                                 <div
                                     key={order.id}
