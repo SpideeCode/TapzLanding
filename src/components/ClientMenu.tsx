@@ -117,9 +117,23 @@ export const ClientMenu: React.FC<ClientMenuProps> = ({ restaurantId }) => {
                                         {item.description && (
                                             <p className="text-sm text-gray-500 line-clamp-2 mt-1">{item.description}</p>
                                         )}
-                                        <button className="mt-2 text-xs font-medium px-3 py-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors">
-                                            Ajouter au panier
-                                        </button>
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <button className="text-xs font-medium px-3 py-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors">
+                                                Ajouter (+)
+                                            </button>
+
+                                            {item.model_3d_glb && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedItem(item);
+                                                    }}
+                                                    className="text-xs font-bold px-3 py-1 bg-slate-900 text-white rounded-full hover:bg-slate-700 transition-colors flex items-center gap-1 shadow-sm"
+                                                >
+                                                    <Box size={12} className="text-blue-400" /> 3D
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
