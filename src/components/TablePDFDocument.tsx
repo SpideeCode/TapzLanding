@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     qrImage: {
         width: '100%',
         height: '100%',
+        objectFit: 'contain',
     },
     footer: {
         width: '100%',
@@ -120,7 +121,7 @@ export const TablePDFDocument: React.FC<TablePDFProps> = ({ restaurant, tables }
                             <View style={styles.footer}>
                                 <Text style={styles.scanText}>Scannez pour commander</Text>
                                 <View style={styles.arBadge}>
-                                    <Text style={styles.arText}>Plats en 3D 📦</Text>
+                                    <Text style={styles.arText}>Plats en 3D</Text>
                                 </View>
                             </View>
                         </View>
