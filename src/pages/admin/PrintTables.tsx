@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { QRCodeCanvas } from 'qrcode.react';
 import { supabase } from '../../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Printer, Box } from 'lucide-react';
 
 export const PrintTables: React.FC = () => {

@@ -132,7 +132,7 @@ export const TableManagement: React.FC<{ restaurantId?: string }> = ({ restauran
                         </div>
                     )}
                     <button
-                        onClick={() => navigate('/admin/tables/print')}
+                        onClick={() => navigate(`/admin/tables/print?restaurantId=${selectedResId}`)}
                         className="bg-white hover:bg-gray-50 text-slate-900 border-2 border-slate-200 px-6 py-3.5 rounded-2xl font-black text-[10px] shadow-sm transition-all active:scale-95 flex items-center gap-2 w-fit uppercase tracking-widest"
                     >
                         <Printer size={18} strokeWidth={3} /> Imprimer QR
