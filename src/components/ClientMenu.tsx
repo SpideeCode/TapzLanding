@@ -124,7 +124,7 @@ export const ClientMenu: React.FC<ClientMenuProps> = ({ restaurantId }) => {
                         {selectedItem.model_3d_glb ? (
                             <div className="aspect-[4/3] w-full">
                                 <DishARView
-                                    glbUrl={selectedItem.model_3d_glb}
+                                    glbUrl={selectedItem.model_3d_glb as string}
                                     usdzUrl={selectedItem.model_3d_usdz || undefined}
                                     posterUrl={selectedItem.image_url}
                                     altText={selectedItem.name}
