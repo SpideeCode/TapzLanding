@@ -73,6 +73,7 @@ export const PrintTables: React.FC = () => {
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
         documentTitle: `QR_Codes_${restaurant?.name || 'Tapzy'}`,
+        onAfterPrint: () => console.log('Print completed'),
     });
 
     if (loading) return <div className="p-8 text-center text-gray-500">Chargement...</div>;
@@ -158,41 +159,44 @@ export const PrintTables: React.FC = () => {
                             </div>
                         ))}
                     </div>
+                    <style>{`
+                        @media print {
+                            @page {
+                                size: A4;
+                                margin: 0;
+                            }
+                            body {
+                                -webkit-print-color-adjust: exact;
+                            }
+                            .print\\:hidden {
+                                display: none !important;
+                            }
+                            .print\\:block {
+                                display: block !important;
+                            }
+                            .print\\:w-full {
+                                width: 100% !important;
+                            }
+                            .print\\:max-w-none {
+                                max-width: none !important;
+                            }
+                            .print\\:shadow-none {
+                                box-shadow: none !important;
+                            }
+                            .print\\:grid-cols-3 {
+                                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                                display: grid !important;
+                            }
+                            .print\\:gap-4 {
+                                gap: 1cm !important;
+                            }
+                            .print\\:break-inside-avoid {
+                                break-inside: avoid !important;
+                            }
+                        }
+                    `}</style>
                 </div>
             </div>
-
-            <style>{`
-                @media print {
-                    @page {
-                        size: A4;
-                        margin: 1cm;
-                    }
-                    body {
-                        background: white;
-                    }
-                    .print\\:hidden {
-                        display: none !important;
-                    }
-                    .print\\:block {
-                        display: block !important;
-                    }
-                    .print\\:w-full {
-                        width: 100% !important;
-                    }
-                    .print\\:max-w-none {
-                        max-width: none !important;
-                    }
-                    .print\\:shadow-none {
-                        box-shadow: none !important;
-                    }
-                    .print\\:grid-cols-3 {
-                        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-                    }
-                    .print\\:gap-4 {
-                        gap: 1rem !important;
-                    }
-                }
-            `}</style>
         </div>
     );
 };
