@@ -11,8 +11,10 @@ import {
     Search,
     MapPin,
     X,
-    Clock
+    Clock,
+    Box
 } from 'lucide-react';
+import { DishARView } from '../components/DishARView';
 
 // --- Types ---
 interface Restaurant {
@@ -41,6 +43,8 @@ interface Item {
     image_url: string | null;
     category_id: string;
     is_available: boolean;
+    model_3d_glb: string | null;
+    model_3d_usdz: string | null;
 }
 
 interface Table {
@@ -75,6 +79,7 @@ export const PublicMenu: React.FC = () => {
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
     const [showCartModal, setShowCartModal] = useState(false);
     const [showTableModal, setShowTableModal] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<Item | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -334,6 +339,13 @@ export const PublicMenu: React.FC = () => {
                                             )}
                                         </div>
 
+                                        {/* 3D Badge */}
+                                        {item.model_3d_glb && (
+                                            <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 z-10 shadow-sm border border-white/10 pointer-events-none">
+                                                <Box size={12} className="text-blue-400" /> 3D
+                                            </div>
+                                        )}
+
                                         <div className="flex-1 flex flex-col justify-between py-1">
                                             <div>
                                                 <div className="flex justify-between items-start gap-2">
@@ -351,6 +363,16 @@ export const PublicMenu: React.FC = () => {
                                                 >
                                                     <Plus size={18} />
                                                 </button>
+
+                                                {/* Direct 3D Button */}
+                                                {item.model_3d_glb && (
+                                                    <button
+                                                        onClick={() => setSelectedItem(item)}
+                                                        className="ml-2 h-8 md:h-10 px-3 rounded-full flex items-center gap-1.5 bg-slate-900 text-white shadow-md active:scale-90 transition-all font-bold text-xs"
+                                                    >
+                                                        <Box size={14} className="text-blue-400" /> 3D
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -477,6 +499,69 @@ export const PublicMenu: React.FC = () => {
                     to { transform: translateX(0); }
                 }
             `}</style>
+
+            {/* Item Detail Modal with AR */}
+            {selectedItem && (
+                <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="absolute inset-0 bg-black/80" onClick={() => setSelectedItem(null)} />
+                    <div className="relative bg-white w-full max-w-lg rounded-t-[2rem] md:rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl">
+
+                        {/* Header Image or AR View */}
+                        <div className="relative bg-gray-100 shrink-0">
+                            {selectedItem.model_3d_glb ? (
+                                <div className="aspect-[4/3] w-full">
+                                    <DishARView
+                                        glbUrl={selectedItem.model_3d_glb}
+                                        usdzUrl={selectedItem.model_3d_usdz || undefined}
+                                        posterUrl={selectedItem.image_url || undefined}
+                                        altText={selectedItem.name}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="aspect-video w-full">
+                                    {selectedItem.image_url ?
+                                        <img src={selectedItem.image_url} className="w-full h-full object-cover" alt={selectedItem.name} />
+                                        : <div className="w-full h-full flex items-center justify-center bg-gray-200"><Clock className="opacity-20" size={48} /></div>
+                                    }
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => setSelectedItem(null)}
+                                className="absolute top-4 right-4 bg-white/50 backdrop-blur-md p-2 rounded-full text-slate-900 shadow-sm z-50 hover:bg-white transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-8 overflow-y-auto">
+                            <div className="flex justify-between items-start mb-4">
+                                <h2 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase leading-tight">
+                                    {selectedItem.name}
+                                </h2>
+                                <span className="text-2xl font-black text-blue-600 tracking-tighter shrink-0">
+                                    {selectedItem.price}€
+                                </span>
+                            </div>
+
+                            <p className="text-gray-500 font-medium leading-relaxed mb-8">
+                                {selectedItem.description || "Aucune description détaillée."}
+                            </p>
+
+                            <button
+                                onClick={() => {
+                                    addToCart({ id: selectedItem.id, name: selectedItem.name, price: selectedItem.price, image_url: selectedItem.image_url || undefined });
+                                    setSelectedItem(null);
+                                }}
+                                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-sm tracking-widest shadow-xl shadow-blue-500/20 active:scale-95 transition-all"
+                            >
+                                Ajouter au panier
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
