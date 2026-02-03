@@ -9,7 +9,6 @@ import {
     CreditCard,
     ArrowRight,
     Check,
-    ChevronDown,
     Box,
     TrendingUp,
     ShieldCheck
@@ -42,7 +41,7 @@ const FeatureCard = ({ icon, title, desc, delay }: { icon: React.ReactNode, titl
         </div>
         <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
         <p className="text-gray-400 leading-relaxed font-medium">{desc}</p>
-    </motion.div>
+    </motion.div >
 );
 
 const CheckItem = ({ text }: { text: string }) => (
@@ -114,30 +113,29 @@ export default function Home() {
                         transition={{ duration: 0.8, ease: "easeOut" }}
                         className="relative hidden lg:block"
                     >
-                        <div className="relative z-10 bg-[#121214] rounded-[3rem] border border-white/10 shadow-2xl shadow-blue-900/20 p-6 rotate-3 hover:rotate-0 transition-transform duration-500">
-                            <div className="aspect-[4/5] rounded-[2rem] overflow-hidden relative bg-gradient-to-br from-gray-900 to-black">
-                                {/* Simulated Mobile UI */}
-                                <div className="absolute top-0 inset-x-0 h-14 bg-gradient-to-b from-black/80 to-transparent z-20 flex items-center px-6 gap-2">
-                                    <div className="w-12 h-1 bg-white/20 rounded-full mx-auto" />
-                                </div>
-                                <img
-                                    src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=800"
-                                    alt="Food Preview"
-                                    className="w-full h-full object-cover opacity-80"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
+                        <div className="relative z-10 bg-[#121214] rounded-[3rem] border border-white/10 shadow-2xl shadow-blue-900/20 p-8 rotate-3 hover:rotate-0 transition-transform duration-500">
+                            <div className="aspect-square bg-[#1E1E1F] rounded-2xl flex items-center justify-center relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full scale-50 group-hover:scale-100 transition-transform duration-700" />
+                                <QrCode className="w-64 h-64 text-[#3B82F6] relative z-10" strokeWidth={1.5} />
+                            </div>
 
-                                <div className="absolute bottom-0 inset-x-0 p-8 space-y-4">
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-black/50 backdrop-blur-md rounded-lg text-xs font-bold text-white border border-white/10 uppercase tracking-wider mb-2">
-                                        <Box size={12} className="text-blue-500" /> Mode AR Activé
+                            <div className="mt-8 space-y-4">
+                                <div className="flex items-center gap-4 p-4 bg-[#0A0A0B] rounded-2xl border border-white/5">
+                                    <div className="w-12 h-12 bg-[#3B82F6] rounded-full flex items-center justify-center hover:bg-[#2563EB] transition-colors shrink-0">
+                                        <Smartphone className="w-6 h-6 text-white" />
                                     </div>
-                                    <h3 className="text-3xl font-black italic">Poke Bowl Saumon</h3>
-                                    <p className="text-gray-300 font-medium line-clamp-2">Avocat frais, mangue, edamame et notre sauce secrète au sésame.</p>
-                                    <div className="flex items-center justify-between pt-2">
-                                        <span className="text-2xl font-bold">14.90€</span>
-                                        <div className="h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-500/40">
-                                            <ArrowRight size={24} />
-                                        </div>
+                                    <div>
+                                        <div className="font-bold text-white">Scannez</div>
+                                        <div className="text-sm text-gray-400">Le QR code sur votre table</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4 p-4 bg-[#0A0A0B] rounded-2xl border border-white/5">
+                                    <div className="w-12 h-12 bg-[#3B82F6] rounded-full flex items-center justify-center hover:bg-[#2563EB] transition-colors shrink-0">
+                                        <Check className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-white">Commandez</div>
+                                        <div className="text-sm text-gray-400">Parcourez le menu et validez</div>
                                     </div>
                                 </div>
                             </div>
@@ -281,65 +279,103 @@ export default function Home() {
 
             {/* --- PRICING --- */}
             <section className="py-20 lg:py-32" id="pricing">
-                <div className="container mx-auto px-6 max-w-5xl">
+                <div className="container mx-auto px-6 max-w-7xl">
                     <FadeIn>
                         <div className="text-center mb-16">
-                            <h2 className="text-4xl font-bold mb-6">Investissement minuscule. <br />Rentabilité immense.</h2>
+                            <h2 className="text-4xl font-bold mb-6">Un tarif adapté à chaque ambition.</h2>
+                            <p className="text-gray-400 max-w-2xl mx-auto">Choisissez le plan qui correspond à la taille de votre établissement.</p>
                         </div>
                     </FadeIn>
 
-                    <div className="grid md:grid-cols-2 gap-8 items-start">
-                        {/* STARTER */}
+                    <div className="grid md:grid-cols-3 gap-8 items-start relative">
+                        {/* BISTRO */}
                         <FadeIn delay={0}>
-                            <div className="p-10 rounded-[2.5rem] bg-[#111113] border border-white/5 flex flex-col h-full hover:border-[#3B82F6]/30 transition-colors duration-300">
-                                <h3 className="text-2xl font-bold text-white mb-2">Starter</h3>
-                                <p className="text-gray-400 font-medium mb-8">Idéal pour les petits établissements.</p>
-                                <div className="flex items-baseline gap-1 mb-2">
-                                    <span className="text-5xl font-bold text-white">49€</span>
-                                    <span className="text-xl text-gray-400 font-medium">/mois</span>
+                            <div className="p-8 rounded-[2rem] bg-[#111113] border border-white/5 flex flex-col h-full hover:border-[#3B82F6]/30 transition-colors duration-300">
+                                <h3 className="text-xl font-bold text-white mb-2">Bistro</h3>
+                                <p className="text-gray-400 text-sm font-medium mb-6">Pour démarrer en douceur.</p>
+                                <div className="flex items-baseline gap-1 mb-8">
+                                    <span className="text-4xl font-bold text-white">39€</span>
+                                    <span className="text-gray-400 font-medium">/mois</span>
                                 </div>
-                                <div className="text-gray-500 font-medium mb-10">Facturation annuelle</div>
 
-                                <div className="space-y-4 mb-10 flex-grow">
-                                    <CheckItem text="Jusqu'à 10 tables" />
-                                    <CheckItem text="Menu Digital Complet" />
-                                    <CheckItem text="Photos Illimitées" />
+                                <div className="space-y-4 mb-8 flex-grow">
+                                    <CheckItem text="10 Tables maximum" />
+                                    <CheckItem text="3 Plats en AR (3D)" />
+                                    <CheckItem text="Statistiques essentielles" />
                                     <CheckItem text="Support Email" />
                                 </div>
 
-                                <Link to="/onboarding" className="block w-full py-4 text-center rounded-2xl font-bold border border-white/10 hover:bg-white hover:text-black transition-all">
-                                    Choisir Starter
+                                <Link to="/onboarding" className="block w-full py-3 text-center rounded-xl font-bold border border-white/10 hover:bg-white hover:text-black transition-all text-sm">
+                                    Démarrer mon essai gratuit
                                 </Link>
                             </div>
                         </FadeIn>
 
-                        {/* PRO */}
+                        {/* PRO (Highlighted) */}
                         <FadeIn delay={0.1}>
-                            <div className="p-10 rounded-[2.5rem] bg-blue-600 border border-blue-400 relative overflow-hidden text-white shadow-2xl shadow-blue-900/40 flex flex-col h-full transform hover:scale-[1.02] transition-transform duration-300">
-                                <div className="absolute top-6 right-6 px-3 py-1 bg-black/20 rounded-full text-xs font-bold uppercase tracking-widest backdrop-blur-md border border-white/20">Populaire</div>
+                            <div className="p-8 rounded-[2rem] bg-[#161618] border border-blue-500/50 relative overflow-hidden flex flex-col h-full transform scale-105 z-10 shadow-2xl shadow-blue-900/10">
+                                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+                                <div className="absolute top-5 right-5 px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-500/20">Populaire</div>
 
-                                <h3 className="text-2xl font-bold mb-2">Unlimited</h3>
-                                <p className="text-blue-100 font-medium mb-8">Pour les restaurants sans limite.</p>
-                                <div className="flex items-baseline gap-1 mb-2">
-                                    <span className="text-5xl font-bold">89€</span>
-                                    <span className="text-xl text-blue-200 font-medium">/mois</span>
+                                <h3 className="text-xl font-bold text-white mb-2">Pro</h3>
+                                <p className="text-gray-400 text-sm font-medium mb-6">La référence pour grandir.</p>
+                                <div className="flex items-baseline gap-1 mb-8">
+                                    <span className="text-4xl font-bold text-white">69€</span>
+                                    <span className="text-gray-400 font-medium">/mois</span>
                                 </div>
-                                <div className="text-blue-200 font-medium mb-10">Facturation annuelle</div>
 
-                                <div className="space-y-4 mb-10 flex-grow">
+                                <div className="space-y-4 mb-8 flex-grow">
+                                    <CheckItem text="25 Tables maximum" />
+                                    <CheckItem text="10 Plats en AR (3D)" />
+                                    <CheckItem text="Statistiques avancées" />
+                                    <CheckItem text="Support Prioritaire" />
+                                </div>
+
+                                <Link to="/onboarding" className="block w-full py-3 text-center rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 transition-all text-sm shadow-lg shadow-blue-500/20">
+                                    Démarrer mon essai gratuit
+                                </Link>
+                            </div>
+                        </FadeIn>
+
+                        {/* ELITE */}
+                        <FadeIn delay={0.2}>
+                            <div className="p-8 rounded-[2rem] bg-[#111113] border border-white/5 flex flex-col h-full hover:border-purple-500/30 transition-colors duration-300">
+                                <h3 className="text-xl font-bold text-white mb-2">Elite</h3>
+                                <p className="text-gray-400 text-sm font-medium mb-6">Pour les leaders du marché.</p>
+                                <div className="flex items-baseline gap-1 mb-8">
+                                    <span className="text-4xl font-bold text-white">99€</span>
+                                    <span className="text-gray-400 font-medium">/mois</span>
+                                </div>
+
+                                <div className="space-y-4 mb-8 flex-grow">
                                     <CheckItem text="Tables Illimitées" />
-                                    <CheckItem text="Paiements Intégrés (0% commission)" />
-                                    <CheckItem text="Réalité Augmentée (AR)" />
-                                    <CheckItem text="Tableau de Bord Analytics" />
-                                    <CheckItem text="Support Prioritaire 24/7" />
+                                    <CheckItem text="AR Illimitée (Full Menu)" />
+                                    <CheckItem text="Analytics complets + Export" />
+                                    <CheckItem text="Account Manager dédié" />
                                 </div>
 
-                                <Link to="/onboarding" className="block w-full py-4 text-center rounded-2xl font-bold bg-white text-blue-600 hover:bg-blue-50 transition-all shadow-lg active:scale-95">
-                                    Choisir Unlimited
+                                <Link to="/onboarding" className="block w-full py-3 text-center rounded-xl font-bold border border-white/10 hover:bg-white hover:text-black transition-all text-sm">
+                                    Démarrer mon essai gratuit
                                 </Link>
                             </div>
                         </FadeIn>
                     </div>
+
+                    <FadeIn delay={0.3}>
+                        <div className="mt-16 p-6 rounded-2xl bg-[#111113] border border-white/5 max-w-3xl mx-auto text-center space-y-2">
+                            <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-sm text-gray-400">
+                                <span className="flex items-center gap-2">
+                                    <Box size={16} className="text-gray-500" />
+                                    Frais d'installation (QR Codes & AR) : <span className="text-white font-bold">20€ / table</span> (paiement unique)
+                                </span>
+                                <span className="hidden md:block w-1 h-1 bg-gray-700 rounded-full" />
+                                <span className="flex items-center gap-2">
+                                    <CreditCard size={16} className="text-gray-500" />
+                                    Frais de service technique : <span className="text-white font-bold">1% par transaction</span>
+                                </span>
+                            </div>
+                        </div>
+                    </FadeIn>
                 </div>
             </section>
 
