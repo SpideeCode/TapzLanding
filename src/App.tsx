@@ -1,41 +1,47 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import { QrCode, LogOut } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { supabase } from './lib/supabase';
+import { Loading } from './components/Loading';
 
+// Eagerly loaded for landing performance
 import Home from './pages/Home';
 import Contact from './pages/Contact';
 
-// Superadmin Pages
-import { SuperAdminLayout } from './components/layouts/SuperAdminLayout';
-import { DashboardOverview as SuperAdminDashboard } from './pages/superadmin/DashboardOverview';
-import { RestaurantManagement } from './pages/superadmin/Restaurants';
-import { StaffManagement as SuperAdminStaff } from './pages/superadmin/Staff';
-import { MenuManagement } from './pages/superadmin/MenuManagement';
-import { PublicMenu } from './pages/PublicMenu';
-import { OrderSuccess } from './pages/public/OrderSuccess';
-import { RestaurantManager } from './pages/superadmin/RestaurantManager';
+// Superadmin Pages - Lazy Loaded
+const SuperAdminLayout = lazy(() => import('./components/layouts/SuperAdminLayout').then(module => ({ default: module.SuperAdminLayout })));
+const SuperAdminDashboard = lazy(() => import('./pages/superadmin/DashboardOverview').then(module => ({ default: module.DashboardOverview })));
+const RestaurantManagement = lazy(() => import('./pages/superadmin/Restaurants').then(module => ({ default: module.RestaurantManagement })));
+const SuperAdminStaff = lazy(() => import('./pages/superadmin/Staff').then(module => ({ default: module.StaffManagement })));
+const MenuManagement = lazy(() => import('./pages/superadmin/MenuManagement').then(module => ({ default: module.MenuManagement })));
+const RestaurantManager = lazy(() => import('./pages/superadmin/RestaurantManager').then(module => ({ default: module.RestaurantManager })));
 
-// Admin Pages
-import { AdminLayout } from './components/layouts/AdminLayout';
-import { AdminDashboardOverview } from './pages/admin/DashboardOverview';
-import { TableManagement } from './pages/admin/Tables';
-import { MenuManagement as AdminMenuManagement } from './pages/admin/MenuManagement';
-import { RestaurantSettings } from './pages/admin/RestaurantSettings';
-import { PrintTables } from './pages/admin/PrintTables';
+// Public Menu & Orders - Lazy Loaded (Optimization)
+const PublicMenu = lazy(() => import('./pages/PublicMenu').then(module => ({ default: module.PublicMenu })));
+const OrderSuccess = lazy(() => import('./pages/public/OrderSuccess').then(module => ({ default: module.OrderSuccess })));
 
+// Admin Pages - Lazy Loaded
+const AdminLayout = lazy(() => import('./components/layouts/AdminLayout').then(module => ({ default: module.AdminLayout })));
+const AdminDashboardOverview = lazy(() => import('./pages/admin/DashboardOverview').then(module => ({ default: module.AdminDashboardOverview })));
+const AdminTableManagement = lazy(() => import('./pages/admin/Tables').then(module => ({ default: module.TableManagement })));
+const AdminMenuManagement = lazy(() => import('./pages/admin/MenuManagement').then(module => ({ default: module.MenuManagement })));
+const RestaurantSettings = lazy(() => import('./pages/admin/RestaurantSettings').then(module => ({ default: module.RestaurantSettings })));
+const PrintTables = lazy(() => import('./pages/admin/PrintTables').then(module => ({ default: module.PrintTables })));
 
-// Staff Pages
-import { StaffLayout } from './components/layouts/StaffLayout';
-import { LiveOrders as StaffOrders } from './pages/staff/LiveOrders';
-import { OrderHistory } from './pages/staff/OrderHistory';
-import { StaffLogin } from './pages/staff/StaffLogin';
-import { GlobalStaffLogin } from './pages/staff/GlobalStaffLogin';
+// Staff Pages - Lazy Loaded
+const StaffLayout = lazy(() => import('./components/layouts/StaffLayout').then(module => ({ default: module.StaffLayout })));
+const StaffOrders = lazy(() => import('./pages/staff/LiveOrders').then(module => ({ default: module.LiveOrders })));
+const OrderHistory = lazy(() => import('./pages/staff/OrderHistory').then(module => ({ default: module.OrderHistory })));
+const StaffLogin = lazy(() => import('./pages/staff/StaffLogin').then(module => ({ default: module.StaffLogin })));
+const GlobalStaffLogin = lazy(() => import('./pages/staff/GlobalStaffLogin').then(module => ({ default: module.GlobalStaffLogin })));
+
+// Onboarding - Lazy Loaded
+const OnboardingWizard = lazy(() => import('./pages/onboarding/OnboardingWizard').then(module => ({ default: module.OnboardingWizard })));
+const OnboardingSuccess = lazy(() => import('./pages/onboarding/OnboardingSuccess').then(module => ({ default: module.OnboardingSuccess })));
+
 import { StaffRoute } from './components/auth/StaffRoute';
-import { OnboardingWizard } from './pages/onboarding/OnboardingWizard';
-import { OnboardingSuccess } from './pages/onboarding/OnboardingSuccess';
 
 function ScrollToTop() {
   // Scroll to top on route change unless it's an anchor link
@@ -169,66 +175,68 @@ export default function App() {
 
         {/* Main Content */}
         <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/m/:slug" element={<PublicMenu />} />
-            <Route path="/order-success" element={<OrderSuccess />} />
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/m/:slug" element={<PublicMenu />} />
+              <Route path="/order-success" element={<OrderSuccess />} />
 
-            {/* Onboarding Routes */}
-            <Route path="/onboarding" element={<OnboardingWizard />} />
-            <Route path="/onboarding/success" element={<OnboardingSuccess />} />
+              {/* Onboarding Routes */}
+              <Route path="/onboarding" element={<OnboardingWizard />} />
+              <Route path="/onboarding/success" element={<OnboardingSuccess />} />
 
-            {/* Superadmin Routes (Protected) */}
-            <Route path="/superadmin/*" element={
-              <ProtectedRoute requiredRole="superadmin">
-                <SuperAdminLayout>
-                  <Routes>
-                    <Route index element={<SuperAdminDashboard />} />
-                    <Route path="restaurants" element={<RestaurantManagement />} />
-                    <Route path="restaurant/:id/*" element={<RestaurantManager />} />
-                    <Route path="staff" element={<SuperAdminStaff />} />
-                    <Route path="menus" element={<MenuManagement />} />
-                    <Route path="tables" element={<TableManagement />} />
-                  </Routes>
-                </SuperAdminLayout>
-              </ProtectedRoute>
-            } />
-
-            <Route path="/admin/*" element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminLayout>
-                  <Routes>
-                    <Route index element={<AdminDashboardOverview />} />
-                    <Route path="menu" element={<AdminMenuManagement />} />
-                    <Route path="tables" element={<TableManagement />} />
-                    <Route path="tables/print" element={<PrintTables />} />
-                    <Route path="settings" element={<RestaurantSettings />} />
-                    <Route path="staff" element={<div className="p-8 text-2xl font-bold bg-[#111113] text-white rounded-[2.5rem] border border-white/5 italic">Gestion Staff (À venir)</div>} />
-                    <Route path="orders" element={<StaffOrders />} />
-                    <Route path="history" element={<OrderHistory />} />
-                  </Routes>
-                </AdminLayout>
-              </ProtectedRoute>
-            } />
-            {/* Staff Routes (Protected) */}
-            {/* Staff Routes */}
-            <Route path="/staff/login" element={<GlobalStaffLogin />} />
-            <Route path="/staff/:slug/login" element={<StaffLogin />} />
-
-            <Route element={<StaffRoute />}>
-              <Route path="/staff/:slug/*" element={
-                <StaffLayout>
-                  <Routes>
-                    <Route index element={<StaffOrders />} />
-                    <Route path="history" element={<OrderHistory />} />
-                  </Routes>
-                </StaffLayout>
+              {/* Superadmin Routes (Protected) */}
+              <Route path="/superadmin/*" element={
+                <ProtectedRoute requiredRole="superadmin">
+                  <SuperAdminLayout>
+                    <Routes>
+                      <Route index element={<SuperAdminDashboard />} />
+                      <Route path="restaurants" element={<RestaurantManagement />} />
+                      <Route path="restaurant/:id/*" element={<RestaurantManager />} />
+                      <Route path="staff" element={<SuperAdminStaff />} />
+                      <Route path="menus" element={<MenuManagement />} />
+                      <Route path="tables" element={<AdminTableManagement />} />
+                    </Routes>
+                  </SuperAdminLayout>
+                </ProtectedRoute>
               } />
-            </Route>
 
-          </Routes>
+              <Route path="/admin/*" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminLayout>
+                    <Routes>
+                      <Route index element={<AdminDashboardOverview />} />
+                      <Route path="menu" element={<AdminMenuManagement />} />
+                      <Route path="tables" element={<AdminTableManagement />} />
+                      <Route path="tables/print" element={<PrintTables />} />
+                      <Route path="settings" element={<RestaurantSettings />} />
+                      <Route path="staff" element={<div className="p-8 text-2xl font-bold bg-[#111113] text-white rounded-[2.5rem] border border-white/5 italic">Gestion Staff (À venir)</div>} />
+                      <Route path="orders" element={<StaffOrders />} />
+                      <Route path="history" element={<OrderHistory />} />
+                    </Routes>
+                  </AdminLayout>
+                </ProtectedRoute>
+              } />
+              {/* Staff Routes (Protected) */}
+              {/* Staff Routes */}
+              <Route path="/staff/login" element={<GlobalStaffLogin />} />
+              <Route path="/staff/:slug/login" element={<StaffLogin />} />
+
+              <Route element={<StaffRoute />}>
+                <Route path="/staff/:slug/*" element={
+                  <StaffLayout>
+                    <Routes>
+                      <Route index element={<StaffOrders />} />
+                      <Route path="history" element={<OrderHistory />} />
+                    </Routes>
+                  </StaffLayout>
+                } />
+              </Route>
+
+            </Routes>
+          </Suspense>
         </main>
 
         <Routes>
