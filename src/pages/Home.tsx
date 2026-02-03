@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { Suspense, lazy, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import {
     QrCode,
     Smartphone,
@@ -13,7 +13,9 @@ import {
     TrendingUp,
     ShieldCheck
 } from 'lucide-react';
-import InteractiveDemo from '../components/InteractiveDemo';
+
+// Chargement différé de la démo 3D pour éviter l'écran noir au chargement
+const InteractiveDemo = lazy(() => import('../components/InteractiveDemo'));
 
 // --- Components ---
 
@@ -22,7 +24,8 @@ const FadeIn = ({ children, delay = 0 }: { children: React.ReactNode, delay?: nu
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.6, delay, ease: "easeOut" }}
+        transition={{ duration: 0.5, delay, ease: "easeOut" }}
+        style={{ willChange: "transform, opacity" }} // Force GPU
     >
         {children}
     </motion.div>
@@ -33,7 +36,7 @@ const FeatureCard = ({ icon, title, desc, delay }: { icon: React.ReactNode, titl
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.5, delay }}
+        transition={{ duration: 0.4, delay }}
         className="group p-8 rounded-3xl bg-[#111113] border border-white/5 hover:border-blue-500/30 hover:bg-[#161618] transition-all duration-300"
     >
         <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-6 group-hover:scale-110 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
@@ -55,16 +58,26 @@ const CheckItem = ({ text }: { text: string }) => (
 
 export default function Home() {
     const { scrollYProgress } = useScroll();
-    const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-    const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+    
+    // Smooth scroll physics
+    const smoothProgress = useSpring(scrollYProgress, {
+        stiffness: 100,
+        damping: 30,
+        restDelta: 0.001
+    });
+
+    // On désactive les transformations lourdes sur mobile pour éviter les saccades
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const opacity = useTransform(smoothProgress, [0, 0.15], [1, isMobile ? 1 : 0]);
+    const scale = useTransform(smoothProgress, [0, 0.15], [1, isMobile ? 1 : 0.95]);
 
     return (
-        <div className="bg-[#0A0A0B] text-white overflow-hidden relative selection:bg-blue-500/30">
+        <div className="bg-[#0A0A0B] text-white overflow-x-hidden relative selection:bg-blue-500/30">
 
-            {/* Background Gradients */}
+            {/* Background Gradients - Opacité réduite pour mobile */}
             <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-purple-600/10 rounded-full blur-[100px]" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 md:bg-blue-600/10 rounded-full blur-[80px] md:blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-purple-600/5 md:bg-purple-600/10 rounded-full blur-[80px] md:blur-[100px]" />
             </div>
 
             {/* --- HERO SECTION --- */}
@@ -105,45 +118,8 @@ export default function Home() {
                             </a>
                         </div>
                     </motion.div>
-
-                    {/* Visual Hero Component */}
-                    {/* <motion.div
-                        initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
-                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                        className="relative hidden lg:block"
-                    >
-                        <div className="relative z-10 bg-[#121214] rounded-[3rem] border border-white/10 shadow-2xl shadow-blue-900/20 p-8 rotate-3 hover:rotate-0 transition-transform duration-500">
-                            <div className="aspect-square bg-[#1E1E1F] rounded-2xl flex items-center justify-center relative overflow-hidden group">
-                                <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full scale-50 group-hover:scale-100 transition-transform duration-700" />
-                                <QrCode className="w-64 h-64 text-[#3B82F6] relative z-10" strokeWidth={1.5} />
-                            </div>
-
-                            <div className="mt-8 space-y-4">
-                                <div className="flex items-center gap-4 p-4 bg-[#0A0A0B] rounded-2xl border border-white/5">
-                                    <div className="w-12 h-12 bg-[#3B82F6] rounded-full flex items-center justify-center hover:bg-[#2563EB] transition-colors shrink-0">
-                                        <Smartphone className="w-6 h-6 text-white" />
-                                    </div>
-                                    <div>
-                                        <div className="font-bold text-white">Scannez</div>
-                                        <div className="text-sm text-gray-400">Le QR code sur votre table</div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4 p-4 bg-[#0A0A0B] rounded-2xl border border-white/5">
-                                    <div className="w-12 h-12 bg-[#3B82F6] rounded-full flex items-center justify-center hover:bg-[#2563EB] transition-colors shrink-0">
-                                        <Check className="w-6 h-6 text-white" />
-                                    </div>
-                                    <div>
-                                        <div className="font-bold text-white">Commandez</div>
-                                        <div className="text-sm text-gray-400">Parcourez le menu et validez</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div> */}
                 </div>
             </section>
-
 
             {/* --- PROBLEM / SOLUTION --- */}
             <section className="py-20 lg:py-32 relative z-10 bg-[#0F0F11]">
@@ -160,7 +136,7 @@ export default function Home() {
                             <div className="space-y-6">
                                 <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/10">
                                     <h3 className="text-xl font-bold text-red-400 mb-2 flex items-center gap-2"><Smartphone size={20} /> L'Enfer du PDF</h3>
-                                    <ul className="space-y-3 text-red-200/60 font-medium">
+                                    <ul className="space-y-3 text-red-200/60 font-medium text-sm md:text-base">
                                         <li className="flex gap-2">❌ Zoom impossible sur mobile</li>
                                         <li className="flex gap-2">❌ Pas de photos des plats</li>
                                         <li className="flex gap-2">❌ Serveurs débordés par les questions</li>
@@ -176,7 +152,7 @@ export default function Home() {
                                     <ul className="space-y-4 text-white relative z-10 font-medium text-lg">
                                         <li className="flex gap-3 items-center"><Check className="text-blue-200" /> Photos HD & Réalité Augmentée</li>
                                         <li className="flex gap-3 items-center"><Check className="text-blue-200" /> Commande envoyée en cuisine</li>
-                                        <li className="flex gap-3 items-center"><Check className="text-blue-200" /> Paiement Apple Pay / Google Pay</li>
+                                        <li className="flex gap-3 items-center"><Check className="text-blue-200" /> Paiement Apple / Google Pay</li>
                                     </ul>
                                 </div>
                             </div>
@@ -184,7 +160,6 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-
 
             {/* --- KILLER FEATURES --- */}
             <section className="py-20 lg:py-32 relative z-10">
@@ -201,78 +176,20 @@ export default function Home() {
                             delay={0}
                             icon={<Box size={24} />}
                             title="Réalité Augmentée"
-                            desc="Ne laissez plus vos clients deviner. Ils voient le plat en 3D sur leur table avant de commander. L'effet 'Wahou' garanti."
+                            desc="Ne laissez plus vos clients deviner. Ils voient le plat en 3D sur leur table avant de commander."
                         />
                         <FeatureCard
                             delay={0.1}
                             icon={<Smartphone size={24} />}
                             title="Zero App Download"
-                            desc="Tout se passe dans le navigateur. Un scan, et c'est parti. Aucune friction, aucune installation requise."
+                            desc="Tout se passe dans le navigateur. Un scan, et c'est parti. Aucune installation requise."
                         />
                         <FeatureCard
                             delay={0.2}
                             icon={<CreditCard size={24} />}
                             title="Stripe Connect"
-                            desc="Paiements intégrés et sécurisés. L'argent arrive directement sur votre compte bancaire. Pourboires inclus."
+                            desc="Paiements intégrés et sécurisés. L'argent arrive directement sur votre compte bancaire."
                         />
-                        <FeatureCard
-                            delay={0.3}
-                            icon={<TrendingUp size={24} />}
-                            title="+30% de Rotation"
-                            desc="Les clients commandent et paient plus vite. Vous libérez les tables plus rapidement aux heures de pointe."
-                        />
-                        <FeatureCard
-                            delay={0.4}
-                            icon={<ShieldCheck size={24} />}
-                            title="Fiabilité 99.9%"
-                            desc="Notre infrastructure cloud assure que votre menu est toujours disponible, même en plein rush du samedi soir."
-                        />
-                        <FeatureCard
-                            delay={0.5}
-                            icon={<Clock size={24} />}
-                            title="Setup en 2 min"
-                            desc="Créez votre compte, uploadez vos plats, imprimez vos QR codes. Vous êtes prêt pour le service de ce soir."
-                        />
-                    </div>
-                </div>
-            </section>
-
-            {/* --- SOCIAL PROOF --- */}
-            <section className="py-20 lg:py-32 bg-[#111113] border-y border-white/5">
-                <div className="container mx-auto px-6">
-                    <div className="grid lg:grid-cols-2 gap-16 items-center">
-                        <FadeIn>
-                            <h2 className="text-4xl font-bold leading-tight mb-8">
-                                "On a gagné 20 minutes par service et le ticket moyen a explosé."
-                            </h2>
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-full bg-gray-700 overflow-hidden">
-                                    <img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&q=80&w=200" alt="Chef" className="w-full h-full object-cover" />
-                                </div>
-                                <div>
-                                    <div className="font-bold text-white text-lg">Marc Dubois</div>
-                                    <div className="text-blue-500 font-medium">Propriétaire, Le Bistro Moderne</div>
-                                </div>
-                            </div>
-                        </FadeIn>
-
-                        <div className="grid gap-6">
-                            {/* Stats Grid */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <FadeIn delay={0.1}>
-                                    <div className="p-6 rounded-2xl bg-[#0A0A0B] border border-white/5 text-center">
-                                        <div className="text-3xl font-black text-blue-500 mb-1">+18%</div>
-                                        <div className="text-sm font-bold text-gray-400 uppercase tracking-widest">Ticket Moyen</div>
-                                    </div>
-                                </FadeIn>
-                                <FadeIn delay={0.2}>
-                                    <div className="p-6 rounded-2xl bg-[#0A0A0B] border border-white/5 text-center">
-                                        <div className="text-3xl font-black text-purple-500 mb-1">-25%</div>
-                                        <div className="text-sm font-bold text-gray-400 uppercase tracking-widest">Temps d'attente</div>
-                                    </div>
-                                </FadeIn>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </section>
@@ -283,118 +200,84 @@ export default function Home() {
                     <FadeIn>
                         <div className="text-center mb-16">
                             <h2 className="text-4xl font-bold mb-6">Un tarif adapté à chaque ambition.</h2>
-                            <p className="text-gray-400 max-w-2xl mx-auto">Choisissez le plan qui correspond à la taille de votre établissement.</p>
+                            <p className="text-gray-400 max-w-2xl mx-auto">Choisissez le plan qui correspond à votre établissement.</p>
                         </div>
                     </FadeIn>
 
-                    <div className="grid md:grid-cols-3 gap-8 items-start relative">
+                    <div className="grid md:grid-cols-3 gap-8 items-stretch relative">
                         {/* BISTRO */}
-                        <FadeIn delay={0}>
-                            <div className="p-8 rounded-[2rem] bg-[#111113] border border-white/5 flex flex-col h-full hover:border-[#3B82F6]/30 transition-colors duration-300">
-                                <h3 className="text-xl font-bold text-white mb-2">Bistro</h3>
-                                <p className="text-gray-400 text-sm font-medium mb-6">Pour démarrer en douceur.</p>
-                                <div className="flex items-baseline gap-1 mb-8">
-                                    <span className="text-4xl font-bold text-white">39€</span>
-                                    <span className="text-gray-400 font-medium">/mois</span>
-                                </div>
-
-                                <div className="space-y-4 mb-8 flex-grow">
-                                    <CheckItem text="10 Tables maximum" />
-                                    <CheckItem text="3 Plats en AR (3D)" />
-                                    <CheckItem text="Statistiques essentielles" />
-                                    <CheckItem text="Support Email" />
-                                </div>
-
-                                <Link to="/onboarding" className="block w-full py-3 text-center rounded-xl font-bold border border-white/10 hover:bg-white hover:text-black transition-all text-sm">
-                                    Démarrer mon essai gratuit
-                                </Link>
+                        <div className="p-8 rounded-[2rem] bg-[#111113] border border-white/5 flex flex-col h-full">
+                            <h3 className="text-xl font-bold text-white mb-2">Bistro</h3>
+                            <div className="flex items-baseline gap-1 mb-8">
+                                <span className="text-4xl font-bold text-white">39€</span>
+                                <span className="text-gray-400 font-medium">/mois</span>
                             </div>
-                        </FadeIn>
-
-                        {/* PRO (Highlighted) */}
-                        <FadeIn delay={0.1}>
-                            <div className="p-8 rounded-[2rem] bg-[#161618] border border-blue-500/50 relative overflow-hidden flex flex-col h-full transform scale-105 z-10 shadow-2xl shadow-blue-900/10">
-                                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
-                                <div className="absolute top-5 right-5 px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-500/20">Populaire</div>
-
-                                <h3 className="text-xl font-bold text-white mb-2">Pro</h3>
-                                <p className="text-gray-400 text-sm font-medium mb-6">La référence pour grandir.</p>
-                                <div className="flex items-baseline gap-1 mb-8">
-                                    <span className="text-4xl font-bold text-white">69€</span>
-                                    <span className="text-gray-400 font-medium">/mois</span>
-                                </div>
-
-                                <div className="space-y-4 mb-8 flex-grow">
-                                    <CheckItem text="25 Tables maximum" />
-                                    <CheckItem text="10 Plats en AR (3D)" />
-                                    <CheckItem text="Statistiques avancées" />
-                                    <CheckItem text="Support Prioritaire" />
-                                </div>
-
-                                <Link to="/onboarding" className="block w-full py-3 text-center rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 transition-all text-sm shadow-lg shadow-blue-500/20">
-                                    Démarrer mon essai gratuit
-                                </Link>
+                            <div className="space-y-4 mb-8 flex-grow">
+                                <CheckItem text="10 Tables maximum" />
+                                <CheckItem text="3 Plats en AR (3D)" />
+                                <CheckItem text="Stats essentielles" />
                             </div>
-                        </FadeIn>
+                            <Link to="/onboarding" className="block w-full py-3 text-center rounded-xl font-bold border border-white/10 hover:bg-white hover:text-black transition-all text-sm">
+                                Essayer gratuitement
+                            </Link>
+                        </div>
+
+                        {/* PRO */}
+                        <div className="p-8 rounded-[2rem] bg-[#161618] border border-blue-500/50 relative overflow-hidden flex flex-col h-full shadow-2xl">
+                            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+                            <h3 className="text-xl font-bold text-white mb-2">Pro</h3>
+                            <div className="flex items-baseline gap-1 mb-8">
+                                <span className="text-4xl font-bold text-white">69€</span>
+                                <span className="text-gray-400 font-medium">/mois</span>
+                            </div>
+                            <div className="space-y-4 mb-8 flex-grow">
+                                <CheckItem text="25 Tables maximum" />
+                                <CheckItem text="10 Plats en AR (3D)" />
+                                <CheckItem text="Stats avancées" />
+                                <CheckItem text="Support Prioritaire" />
+                            </div>
+                            <Link to="/onboarding" className="block w-full py-3 text-center rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 transition-all text-sm">
+                                Essayer gratuitement
+                            </Link>
+                        </div>
 
                         {/* ELITE */}
-                        <FadeIn delay={0.2}>
-                            <div className="p-8 rounded-[2rem] bg-[#111113] border border-white/5 flex flex-col h-full hover:border-purple-500/30 transition-colors duration-300">
-                                <h3 className="text-xl font-bold text-white mb-2">Elite</h3>
-                                <p className="text-gray-400 text-sm font-medium mb-6">Pour les leaders du marché.</p>
-                                <div className="flex items-baseline gap-1 mb-8">
-                                    <span className="text-4xl font-bold text-white">99€</span>
-                                    <span className="text-gray-400 font-medium">/mois</span>
-                                </div>
-
-                                <div className="space-y-4 mb-8 flex-grow">
-                                    <CheckItem text="Tables Illimitées" />
-                                    <CheckItem text="AR Illimitée (Full Menu)" />
-                                    <CheckItem text="Analytics complets + Export" />
-                                    <CheckItem text="Account Manager dédié" />
-                                </div>
-
-                                <Link to="/onboarding" className="block w-full py-3 text-center rounded-xl font-bold border border-white/10 hover:bg-white hover:text-black transition-all text-sm">
-                                    Démarrer mon essai gratuit
-                                </Link>
+                        <div className="p-8 rounded-[2rem] bg-[#111113] border border-white/5 flex flex-col h-full">
+                            <h3 className="text-xl font-bold text-white mb-2">Elite</h3>
+                            <div className="flex items-baseline gap-1 mb-8">
+                                <span className="text-4xl font-bold text-white">99€</span>
+                                <span className="text-gray-400 font-medium">/mois</span>
                             </div>
-                        </FadeIn>
-                    </div>
-
-                    <FadeIn delay={0.3}>
-                        <div className="mt-16 p-6 rounded-2xl bg-[#111113] border border-white/5 max-w-3xl mx-auto text-center space-y-2">
-                            <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-sm text-gray-400">
-                                <span className="flex items-center gap-2">
-                                    <Box size={16} className="text-gray-500" />
-                                    Frais d'installation (QR Codes & AR) : <span className="text-white font-bold">20€ / table</span> (paiement unique)
-                                </span>
-                                <span className="hidden md:block w-1 h-1 bg-gray-700 rounded-full" />
-                                <span className="flex items-center gap-2">
-                                    <CreditCard size={16} className="text-gray-500" />
-                                    Frais de service technique : <span className="text-white font-bold">1% par transaction</span>
-                                </span>
+                            <div className="space-y-4 mb-8 flex-grow">
+                                <CheckItem text="Tables Illimitées" />
+                                <CheckItem text="AR Illimitée" />
+                                <CheckItem text="Account Manager" />
                             </div>
+                            <Link to="/onboarding" className="block w-full py-3 text-center rounded-xl font-bold border border-white/10 hover:bg-white hover:text-black transition-all text-sm">
+                                Essayer gratuitement
+                            </Link>
                         </div>
-                    </FadeIn>
+                    </div>
                 </div>
             </section>
 
-            {/* Interactive Demo Section (Kept visible for SEO/Structure but could be seamlessly integrated above) */}
+            {/* Interactive Demo Section - Chargement asynchrone */}
             <div id="demo" className="py-20 bg-[#0F0F11]">
                 <div className="container mx-auto px-6 text-center mb-10">
-                    <h2 className="text-3xl font-bold text-gray-500 uppercase tracking-widest text-sm">Démo Technique</h2>
+                    <h2 className="text-3xl font-bold text-gray-500 uppercase tracking-widest text-xs">Aperçu interactif</h2>
                 </div>
-                <InteractiveDemo />
+                <Suspense fallback={<div className="h-96 w-full flex items-center justify-center text-gray-500">Chargement de la démo 3D...</div>}>
+                    <InteractiveDemo />
+                </Suspense>
             </div>
 
             {/* --- CTA FOOTER --- */}
-            <section className="py-32 relative overflow-hidden">
-                <div className="absolute inset-0 bg-blue-600/5" />
+            <section className="py-32 relative overflow-hidden bg-blue-600/5">
                 <div className="container mx-auto px-6 relative z-10 text-center">
                     <h2 className="text-5xl md:text-7xl font-bold mb-10 tracking-tighter">
                         Vos tables attendent.
                     </h2>
-                    <Link to="/onboarding" className="inline-flex items-center gap-3 px-12 py-6 bg-white text-black text-xl font-bold rounded-full hover:scale-105 transition-transform shadow-2xl shadow-white/10">
+                    <Link to="/onboarding" className="inline-flex items-center gap-3 px-12 py-6 bg-white text-black text-xl font-bold rounded-full hover:scale-105 transition-transform shadow-2xl">
                         Créer mon compte maintenant
                     </Link>
                 </div>
