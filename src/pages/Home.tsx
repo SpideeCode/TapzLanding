@@ -107,7 +107,7 @@ export default function Home() {
                     </motion.div>
 
                     {/* Visual Hero Component */}
-                    <motion.div
+                    {/* <motion.div
                         initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
                         animate={{ opacity: 1, scale: 1, rotate: 0 }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
@@ -140,7 +140,7 @@ export default function Home() {
                                 </div>
                             </div>
                         </div>
-                    </motion.div>
+                    </motion.div> */}
                 </div>
             </section>
 
