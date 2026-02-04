@@ -376,65 +376,111 @@ export default function Home() {
 
                     <div className="container mx-auto px-6 max-w-7xl relative z-10">
                         <FadeIn>
-                            <div className="text-center mb-24 space-y-4">
-                                <h2 className="text-4xl md:text-6xl font-bold tracking-tight">Investissez dans votre croissance.</h2>
-                                <p className="text-xl text-gray-400">Pas de coûts cachés. Rentabilisé en 2 services.</p>
+                            <div className="text-center mb-16 space-y-4">
+                                <h2 className="text-4xl md:text-6xl font-bold tracking-tight">Une seule plateforme.<br />Tous les outils. <span className="text-blue-500">Pas de compromis.</span></h2>
                             </div>
                         </FadeIn>
 
+                        {/* Universal Inclusions */}
+                        <FadeIn delay={0.2}>
+                            <div className="mb-20 p-8 rounded-3xl bg-white/5 border border-white/5 backdrop-blur-sm">
+                                <p className="text-center text-gray-400 mb-8 uppercase tracking-widest text-sm font-bold">Inclus dans tous les plans</p>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                    {[
+                                        { icon: <CreditCard className="w-5 h-5 text-blue-500" />, text: "Paiements Intégrés (Apple/Google Pay)" },
+                                        { icon: <TrendingUp className="w-5 h-5 text-blue-500" />, text: "Dashboard Stats Temps Réel" },
+                                        { icon: <QrCode className="w-5 h-5 text-blue-500" />, text: "Gestion Menu & Stocks" },
+                                        { icon: <ShieldCheck className="w-5 h-5 text-blue-500" />, text: "Support Technique 7j/7" },
+                                    ].map((item, i) => (
+                                        <div key={i} className="flex flex-col items-center text-center gap-3 p-4 rounded-2xl bg-[#161618]">
+                                            <div className="p-3 bg-blue-500/10 rounded-full">{item.icon}</div>
+                                            <span className="font-medium text-gray-200 text-sm">{item.text}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </FadeIn>
+
+                        {/* Subscription Grid */}
                         <m.div
                             variants={staggerContainer}
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: true }}
-                            className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch"
+                            className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch mb-24"
                         >
                             <PriceCard
-                                title="Bistro"
-                                price="39"
-                                subtitle="Pour les démarrages agiles"
+                                title="Bistro Pro"
+                                price="59"
+                                subtitle="L'essentiel pour démarrer"
                                 features={[
-                                    "Jusqu'à 10 tables",
-                                    "Photos HD Illimitées",
-                                    "Dashboard Intuitif",
-                                    "Support Email"
+                                    "Jusqu'à 15 tables",
+                                    "Accès Full Features"
                                 ]}
-                                cta="Lancer le service"
+                                cta="Commencer"
                             />
                             <PriceCard
-                                title="Pro"
-                                price="69"
-                                subtitle="La machine de guerre"
+                                title="Business Lounge"
+                                price="99"
+                                subtitle="Pour les établissements établis"
                                 highlighted={true}
                                 features={[
-                                    "Jusqu'à 25 tables",
-                                    "Stats de Ventes Avancées",
-                                    "Gestion des Stocks",
-                                    "Support Prioritaire WhatsApp",
-                                    "Multi-utilisateurs (Serveurs)"
+                                    "Jusqu'à 40 tables",
+                                    "Accès Full Features"
                                 ]}
-                                cta="Passer en Pro"
+                                cta="Passer en Business"
                             />
                             <PriceCard
-                                title="Elite"
-                                price="99"
-                                subtitle="Empire mode activated"
+                                title="Grande Réserve"
+                                price="179"
+                                subtitle="Illimité & Puissance"
                                 features={[
                                     "Tables Illimitées",
-                                    "API Access",
-                                    "Account Manager Dédié",
-                                    "Formation Équipe sur site",
-                                    "Custom Branding"
+                                    "Accès Full Features"
                                 ]}
                                 cta="Contacter Sales"
                             />
                         </m.div>
 
+                        {/* AR Options Section */}
+                        <FadeIn>
+                            <div className="mb-24">
+                                <h3 className="text-3xl font-bold text-center mb-12">Options 3D & Réalité Augmentée</h3>
+                                <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                                    <div className="p-8 rounded-3xl bg-[#161618] border border-white/5 hover:border-blue-500/30 transition-colors">
+                                        <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-6 text-purple-400">
+                                            <Sparkles size={24} />
+                                        </div>
+                                        <h4 className="text-xl font-bold mb-2">Pack Signature</h4>
+                                        <p className="text-3xl font-bold text-white mb-4">499€ <span className="text-sm font-normal text-gray-500">one-shot</span></p>
+                                        <p className="text-gray-400 text-sm">Modélisation de 5 plats signature en 3D/AR. Idéal pour vos best-sellers.</p>
+                                    </div>
+                                    <div className="p-8 rounded-3xl bg-gradient-to-br from-[#161618] to-blue-900/10 border border-blue-500/20">
+                                        <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-6 text-blue-400">
+                                            <Zap size={24} />
+                                        </div>
+                                        <h4 className="text-xl font-bold mb-2">Pack Saison</h4>
+                                        <p className="text-3xl font-bold text-white mb-4">1200€ <span className="text-sm font-normal text-gray-500">one-shot</span></p>
+                                        <p className="text-gray-400 text-sm">Modélisation de 15 plats. Couvrez l'essentiel de votre carte saisonnière.</p>
+                                    </div>
+                                    <div className="p-8 rounded-3xl bg-[#161618] border border-white/5 hover:border-white/20 transition-colors">
+                                        <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-6 text-white">
+                                            <Smartphone size={24} />
+                                        </div>
+                                        <h4 className="text-xl font-bold mb-2">Full Vision</h4>
+                                        <p className="text-3xl font-bold text-white mb-4">Sur Devis</p>
+                                        <p className="text-gray-400 text-sm">Numérisation complète de la carte ou besoins spécifiques multi-restaurants.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </FadeIn>
+
+                        {/* Transparency Footer */}
                         <FadeIn delay={0.5}>
-                            <div className="mt-20 text-center border-t border-white/5 pt-12">
+                            <div className="text-center border-t border-white/5 pt-12">
                                 <p className="text-xs font-mono text-gray-600 uppercase tracking-[0.2em] mb-6">Transparence Totale</p>
                                 <div className="flex flex-col md:flex-row justify-center gap-10 text-sm text-gray-400">
-                                    <span className="flex items-center justify-center gap-3"><CreditCard size={16} className="text-blue-500" /> Frais de setup : 20€ / table (one-off)</span>
+                                    <span className="flex items-center justify-center gap-3"><Clock size={16} className="text-blue-500" /> Onboarding & Setup : 250€ (Frais unique)</span>
                                     <span className="flex items-center justify-center gap-3"><TrendingUp size={16} className="text-blue-500" /> Commission technique : 1% par transaction</span>
                                 </div>
                             </div>
