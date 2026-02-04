@@ -14,6 +14,7 @@ import {
     Ban,
     Sparkles
 } from 'lucide-react';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 // --- Animations ---
 
@@ -135,6 +136,8 @@ export default function Home() {
     const opacityHero = useTransform(smoothProgress, [0, 0.2], [1, 0]);
     const scaleHero = useTransform(smoothProgress, [0, 0.2], [1, 0.95]);
 
+    const isDesktop = useMediaQuery('(min-width: 1024px)');
+
     return (
         <LazyMotion features={domAnimation}>
             <div className="bg-[#0A0A0B] text-white selection:bg-blue-500/30 overflow-x-hidden relative">
@@ -200,62 +203,64 @@ export default function Home() {
                         </m.div>
 
                         {/* Performance-First Visual: SVG Composition with Floating Animation */}
-                        <m.div
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 1, ease: "easeOut" }}
-                            className="relative hidden lg:block perspective-1000"
-                        >
+                        {isDesktop && (
                             <m.div
-                                variants={floatingAnimation}
-                                animate="animate"
-                                className="relative z-10 bg-[#161618] rounded-[3rem] p-8 border border-white/5 shadow-2xl group cursor-pointer hover:border-blue-500/30 transition-colors"
+                                initial={{ opacity: 0, x: 50 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                                className="relative hidden lg:block perspective-1000"
                             >
-                                <div className="absolute inset-0 bg-blue-500/5 blur-3xl rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-700" />
+                                <m.div
+                                    variants={floatingAnimation}
+                                    animate="animate"
+                                    className="relative z-10 bg-[#161618] rounded-[3rem] p-8 border border-white/5 shadow-2xl group cursor-pointer hover:border-blue-500/30 transition-colors"
+                                >
+                                    <div className="absolute inset-0 bg-blue-500/5 blur-3xl rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-700" />
 
-                                <div className="aspect-[4/5] bg-[#0A0A0B] rounded-[2.5rem] relative overflow-hidden flex flex-col border border-white/5 shadow-inner">
-                                    {/* Abstract UI Header */}
-                                    <div className="h-20 border-b border-white/5 flex items-center px-8 justify-between bg-white/[0.02]">
-                                        <div className="flex gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-red-500/20" />
-                                            <div className="w-3 h-3 rounded-full bg-yellow-500/20" />
-                                            <div className="w-3 h-3 rounded-full bg-green-500/20" />
+                                    <div className="aspect-[4/5] bg-[#0A0A0B] rounded-[2.5rem] relative overflow-hidden flex flex-col border border-white/5 shadow-inner">
+                                        {/* Abstract UI Header */}
+                                        <div className="h-20 border-b border-white/5 flex items-center px-8 justify-between bg-white/[0.02]">
+                                            <div className="flex gap-2">
+                                                <div className="w-3 h-3 rounded-full bg-red-500/20" />
+                                                <div className="w-3 h-3 rounded-full bg-yellow-500/20" />
+                                                <div className="w-3 h-3 rounded-full bg-green-500/20" />
+                                            </div>
+                                            <div className="w-24 h-4 bg-white/10 rounded-full" />
                                         </div>
-                                        <div className="w-24 h-4 bg-white/10 rounded-full" />
-                                    </div>
 
-                                    {/* QR Hero */}
-                                    <div className="flex-1 flex items-center justify-center p-12 relative">
-                                        <m.div
-                                            animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.8, 0.5] }}
-                                            transition={{ duration: 4, repeat: Infinity }}
-                                            className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/40 via-transparent to-transparent"
-                                        />
-                                        <QrCode className="w-full h-full text-white/90 drop-shadow-[0_0_25px_rgba(59,130,246,0.5)]" strokeWidth={1} />
+                                        {/* QR Hero */}
+                                        <div className="flex-1 flex items-center justify-center p-12 relative">
+                                            <m.div
+                                                animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.8, 0.5] }}
+                                                transition={{ duration: 4, repeat: Infinity }}
+                                                className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/40 via-transparent to-transparent"
+                                            />
+                                            <QrCode className="w-full h-full text-white/90 drop-shadow-[0_0_25px_rgba(59,130,246,0.5)]" strokeWidth={1} />
 
-                                        {/* Scan tag */}
-                                        <m.div
-                                            whileHover={{ scale: 1.1 }}
-                                            className="absolute bottom-12 bg-blue-600 text-white px-8 py-4 rounded-full font-bold shadow-xl shadow-blue-500/40 flex items-center gap-3"
-                                        >
-                                            <Smartphone size={20} /> SCAN ME
-                                        </m.div>
+                                            {/* Scan tag */}
+                                            <m.div
+                                                whileHover={{ scale: 1.1 }}
+                                                className="absolute bottom-12 bg-blue-600 text-white px-8 py-4 rounded-full font-bold shadow-xl shadow-blue-500/40 flex items-center gap-3"
+                                            >
+                                                <Smartphone size={20} /> SCAN ME
+                                            </m.div>
+                                        </div>
                                     </div>
-                                </div>
+                                </m.div>
+
+                                {/* Decor elements */}
+                                <m.div
+                                    animate={{ y: [0, 20, 0] }}
+                                    transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+                                    className="absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl opacity-20 blur-xl animate-pulse"
+                                />
+                                <m.div
+                                    animate={{ y: [0, -20, 0] }}
+                                    transition={{ duration: 7, repeat: Infinity, delay: 0 }}
+                                    className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-600 rounded-full opacity-10 blur-2xl"
+                                />
                             </m.div>
-
-                            {/* Decor elements */}
-                            <m.div
-                                animate={{ y: [0, 20, 0] }}
-                                transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-                                className="absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl opacity-20 blur-xl animate-pulse"
-                            />
-                            <m.div
-                                animate={{ y: [0, -20, 0] }}
-                                transition={{ duration: 7, repeat: Infinity, delay: 0 }}
-                                className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-600 rounded-full opacity-10 blur-2xl"
-                            />
-                        </m.div>
+                        )}
                     </div>
                 </section>
 
