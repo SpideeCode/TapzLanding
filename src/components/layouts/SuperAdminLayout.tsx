@@ -8,7 +8,8 @@ import {
     LogOut,
     ArrowLeft,
     Users,
-    Settings
+    Settings,
+    Box
 } from 'lucide-react';
 
 import { supabase } from '../../lib/supabase';
@@ -37,7 +38,9 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({ children }) 
     ] : [
         { name: 'Tableau de bord', href: '/superadmin', icon: LayoutDashboard },
         { name: 'Restaurants', href: '/superadmin/restaurants', icon: Store },
+        { name: 'Studio 3D', href: '/superadmin/studio', icon: Box },
         { name: 'Utilisateurs', href: '/superadmin/staff', icon: Users },
+        { name: 'Outils', href: '/superadmin/tools', icon: Settings },
     ];
 
     const handleLogout = async () => {

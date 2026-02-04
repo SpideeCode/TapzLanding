@@ -22,6 +22,15 @@ export const DashboardOverview: React.FC = () => {
         mrr: 0,
         activeSubs: 0
     });
+    const [financials, setFinancials] = useState<any>({
+        mrr: 0,
+        activeSubs: 0,
+        ttv30d: 0,
+        totalCommission30d: 0,
+        stripeBalance: 0,
+        chartData: []
+    });
+
     const [revenueData, setRevenueData] = useState<any[]>([]);
     const [topRestaurants, setTopRestaurants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -30,72 +39,26 @@ export const DashboardOverview: React.FC = () => {
         const fetchGlobalStats = async () => {
             setLoading(true);
             try {
-                // Fetch all restaurants with plan info
-                const { data: restaurants } = await supabase.from('restaurants').select('id, name, created_at, slug, plan_type, subscription_status');
+                // Fetch Financials from API
+                const financialRes = await fetch('/api/get-platform-financials');
+                if (financialRes.ok) {
+                    const finData = await financialRes.json();
+                    setFinancials(finData);
+                    setRevenueData(finData.chartData || []);
+                }
 
-                // Fetch all orders (beware of scale in prod, but fine for MVP)
-                const { data: orders } = await supabase.from('orders').select('id, total_price, created_at, restaurant_id');
+                // Fetch all restaurants for directory count
+                const { count: resCount } = await supabase.from('restaurants').select('*', { count: 'exact', head: true });
 
-                // Fetch users
-                const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-
-                // Calculate Totals
-                const totalVolume = orders?.reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
-
-                // Calculate MRR & Active Subs
-                let mrr = 0;
-                let activeSubs = 0;
-                restaurants?.forEach(r => {
-                    if (r.subscription_status === 'active') {
-                        activeSubs++;
-                        if (r.plan_type === 'premium') mrr += 89;
-                        else mrr += 49; // Default to standard
-                    }
-                });
-
-                setStats({
-                    totalRestaurants: restaurants?.length || 0,
-                    totalUsers: userCount || 0,
-                    totalOrders: orders?.length || 0,
-                    totalVolume,
-                    mrr,
-                    activeSubs
-                });
-
-                // Prepare Revenue Chart (Last 30 days)
-                const last30Days = subDays(new Date(), 30);
-                const recentOrders = orders?.filter(o => new Date(o.created_at) >= last30Days) || [];
-
-                const revenueMap: Record<string, number> = {};
-                recentOrders.forEach(o => {
-                    const day = format(parseISO(o.created_at), 'dd MMM');
-                    revenueMap[day] = (revenueMap[day] || 0) + Number(o.total_price);
-                });
-
-                const daysInterval = eachDayOfInterval({ start: last30Days, end: new Date() });
-                const finalRevenueData = daysInterval.map(day => {
-                    const str = format(day, 'dd MMM');
-                    return {
-                        date: str,
-                        volume: revenueMap[str] || 0
-                    };
-                });
-                setRevenueData(finalRevenueData);
-
-                // Top Restaurants
-                const resRevenue: Record<string, number> = {};
-                orders?.forEach(o => {
-                    if (o.restaurant_id) {
-                        resRevenue[o.restaurant_id] = (resRevenue[o.restaurant_id] || 0) + Number(o.total_price);
-                    }
-                });
-
-                const sortedRes = restaurants?.map(r => ({
-                    ...r,
-                    revenue: resRevenue[r.id] || 0
-                })).sort((a: any, b: any) => b.revenue - a.revenue).slice(0, 5) || [];
-
+                // Fetch top restaurants by commission (proxy for revenue interest)
+                const { data: restaurants } = await supabase.rpc('get_restaurants_with_stats');
+                const sortedRes = (restaurants || []).sort((a: any, b: any) => (b.total_revenue || 0) - (a.total_revenue || 0)).slice(0, 5);
                 setTopRestaurants(sortedRes);
+
+                setStats(prev => ({
+                    ...prev,
+                    totalRestaurants: resCount || 0
+                }));
 
             } catch (error) {
                 console.error('Error fetching superadmin stats:', error);
@@ -108,20 +71,20 @@ export const DashboardOverview: React.FC = () => {
     }, []);
 
     const cards = [
-        { name: 'MRR (Revenu Mensuel)', value: `${stats.mrr} €`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { name: 'Volume Total', value: `${(stats.totalVolume / 1000).toFixed(1)}k €`, icon: DollarSign, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { name: 'Abonnements Actifs', value: stats.activeSubs, icon: Activity, color: 'text-purple-600', bg: 'bg-purple-50' },
-        { name: 'Restaurants Total', value: stats.totalRestaurants, icon: Store, color: 'text-slate-600', bg: 'bg-slate-50' },
+        { name: 'MRR (Revenu Mensuel)', value: `${financials.mrr} €`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { name: 'Volume (30j)', value: `${(financials.ttv30d / 1000).toFixed(1)}k €`, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { name: 'Commission (Net)', value: `${financials.totalCommission30d.toFixed(2)} €`, icon: DollarSign, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { name: 'Stripe Balance', value: `${financials.stripeBalance.toFixed(2)} €`, icon: Store, color: 'text-slate-600', bg: 'bg-slate-50' },
     ];
 
-    if (loading) return <div className="flex h-96 items-center justify-center text-slate-400 font-bold animate-pulse">Chargement des données...</div>;
+    if (loading) return <div className="flex h-96 items-center justify-center text-slate-400 font-bold animate-pulse">Chargement des données financières...</div>;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-black text-gray-900 tracking-tight">Vue d'ensemble <span className="text-blue-600">SuperAdmin</span></h1>
-                    <p className="text-gray-600 font-medium">Monitoring global de la plateforme.</p>
+                    <p className="text-gray-600 font-medium">Pilotage SaaS & Finance.</p>
                 </div>
             </div>
 
@@ -163,9 +126,9 @@ export const DashboardOverview: React.FC = () => {
                                 <Tooltip
                                     contentStyle={{ backgroundColor: '#1f2937', borderRadius: '12px', border: 'none', color: '#fff' }}
                                     itemStyle={{ color: '#fff' }}
-                                    formatter={(value?: number) => [`${value || 0} €`, 'Volume']}
+                                    formatter={(value?: number) => [`${value || 0} €`, 'Commission']}
                                 />
-                                <Area type="monotone" dataKey="volume" stroke="#059669" strokeWidth={3} fillOpacity={1} fill="url(#colorGlobalVol)" />
+                                <Area type="monotone" dataKey="commission" stroke="#059669" strokeWidth={3} fillOpacity={1} fill="url(#colorGlobalVol)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -189,7 +152,7 @@ export const DashboardOverview: React.FC = () => {
                                         <p className="text-gray-400 text-xs font-semibold">tapzy.app/m/{res.slug}</p>
                                     </div>
                                 </div>
-                                <span className="font-black text-gray-900 text-sm">{res.revenue.toLocaleString()} €</span>
+                                <span className="font-black text-gray-900 text-sm">{(res.total_revenue || res.revenue || 0).toLocaleString()} €</span>
                             </div>
                         ))}
                         {topRestaurants.length === 0 && <p className="text-gray-400 text-center italic text-sm my-auto">Aucune donnée.</p>}

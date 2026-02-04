@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Activity, ShieldCheck, ExternalLink, BarChart3 } from 'lucide-react';
+import { differenceInDays, parseISO } from 'date-fns';
 
-interface Restaurant {
-    id: string;
-    name: string;
-    slug: string;
-    stripe_connect_id: string | null;
-    subscription_status: string | null;
-    plan_type: string | null;
-    payments_enabled: boolean;
-    created_at: string;
-    total_revenue: number;
-    total_commission: number;
+id: string;
+name: string;
+slug: string;
+stripe_connect_id: string | null;
+stripe_details_submitted: boolean; // For stripe status
+subscription_status: string | null;
+plan_type: string | null;
+payments_enabled: boolean;
+created_at: string;
+total_revenue: number;
+total_commission: number;
+last_order_at: string | null;
 }
 
 export const RestaurantManagement: React.FC = () => {
@@ -114,77 +116,83 @@ export const RestaurantManagement: React.FC = () => {
                     <tbody className="divide-y divide-gray-50">
                         {loading ? (
                             <tr>
-                                <td colSpan={4} className="px-6 py-8 text-center text-gray-400">Chargement...</td>
+                                <td colSpan={5} className="px-6 py-8 text-center text-gray-400">Chargement...</td>
                             </tr>
                         ) : restaurants.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="px-6 py-8 text-center text-gray-400">Aucun restaurant trouvé.</td>
+                                <td colSpan={5} className="px-6 py-8 text-center text-gray-400">Aucun restaurant trouvé.</td>
                             </tr>
                         ) : (
-                            restaurants.map((res) => (
-                                <tr key={res.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="font-bold text-gray-900 text-base">{res.name}</div>
-                                        <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md inline-block mt-1">/{res.slug}</div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col gap-1 items-start">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${res.plan_type === 'premium'
-                                                ? 'bg-purple-50 text-purple-700 border-purple-100'
-                                                : 'bg-slate-50 text-slate-600 border-slate-100'
-                                                }`}>
-                                                {res.plan_type || 'STANDARD'}
-                                            </span>
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 ${res.subscription_status === 'active'
-                                                ? 'text-emerald-600'
-                                                : 'text-amber-500'
-                                                }`}>
-                                                <div className={`w-1.5 h-1.5 rounded-full ${res.subscription_status === 'active' ? 'bg-emerald-500' : 'bg-amber-500'
-                                                    }`} />
-                                                {res.subscription_status || 'Inconnu'}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {res.stripe_connect_id ? (
-                                            <div className="flex items-center gap-2">
-                                                <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${res.payments_enabled ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
-                                                    {res.payments_enabled ? 'ACTIF' : 'EN ATTENTE'}
-                                                </span>
-                                                <span className="text-[10px] text-gray-400 font-mono">{res.stripe_connect_id.slice(0, 8)}...</span>
+                            restaurants.map((res) => {
+                                // Health Score Calculation
+                                const daysSinceLastOrder = res.last_order_at ? differenceInDays(new Date(), parseISO(res.last_order_at)) : 999;
+                                let healthColor = 'bg-red-500';
+                                if (daysSinceLastOrder < 2) healthColor = 'bg-emerald-500';
+                                else if (daysSinceLastOrder < 7) healthColor = 'bg-amber-500';
+
+                                return (
+                                    <tr key={res.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-2.5 h-2.5 rounded-full ${healthColor} shadow-sm`} title={`Dernière commande: ${daysSinceLastOrder}j`} />
+                                                <div>
+                                                    <div className="font-bold text-gray-900 text-base">{res.name}</div>
+                                                    <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md inline-block mt-1">/{res.slug}</div>
+                                                </div>
                                             </div>
-                                        ) : (
-                                            <span className="text-gray-300 italic text-xs">Non connecté</span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex flex-col items-end">
-                                            <span className="font-bold text-gray-900">{((res.total_revenue || 0) / 100).toFixed(2)} €</span>
-                                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 rounded uppercase">
-                                                Com: {((res.total_commission || 0) / 100).toFixed(2)} €
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex justify-end space-x-2">
-                                            <button
-                                                onClick={() => navigate(`/superadmin/restaurant/${res.id}`)}
-                                                className="p-2.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                                                title="Gérer ce restaurant"
-                                            >
-                                                <Edit2 size={18} strokeWidth={2.5} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(res.id)}
-                                                className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                                                title="Supprimer ce restaurant"
-                                            >
-                                                <Trash2 size={18} strokeWidth={2.5} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col gap-1 items-start">
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${res.plan_type === 'grande_reserve' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                                                        res.plan_type === 'business_lounge' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
+                                                            'bg-slate-50 text-slate-600 border-slate-100'
+                                                    }`}>
+                                                    {res.plan_type?.replace('_', ' ') || 'STANDARD'}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {res.stripe_connect_id ? (
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`px-2 py-1 rounded-lg text-xs font-bold border flex items-center gap-1 ${res.payments_enabled ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
+                                                        <ShieldCheck size={12} />
+                                                        {res.payments_enabled ? 'VÉRIFIÉ' : 'EN ATTENTE'}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-gray-300 italic text-xs">Non connecté</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex flex-col items-end">
+                                                <span className="font-bold text-gray-900">{((res.total_revenue || 0) / 100).toFixed(2)} €</span>
+                                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 rounded uppercase">
+                                                    Com: {((res.total_commission || 0) / 100).toFixed(2)} €
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end space-x-2">
+                                                <button
+                                                    onClick={() => navigate(`/superadmin/restaurant/${res.id}`)}
+                                                    className="px-3 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-black transition-all shadow-lg shadow-gray-200"
+                                                    title="Impersonate Dashboard"
+                                                >
+                                                    <BarChart3 size={14} />
+                                                    Dash
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(res.id)}
+                                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                    title="Supprimer ce restaurant"
+                                                >
+                                                    <Trash2 size={16} strokeWidth={2.5} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })
                         )}
                     </tbody>
                 </table>

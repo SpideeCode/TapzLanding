@@ -17,6 +17,8 @@ const RestaurantManagement = lazy(() => import('./pages/superadmin/Restaurants')
 const SuperAdminStaff = lazy(() => import('./pages/superadmin/Staff').then(module => ({ default: module.StaffManagement })));
 const MenuManagement = lazy(() => import('./pages/superadmin/MenuManagement').then(module => ({ default: module.MenuManagement })));
 const RestaurantManager = lazy(() => import('./pages/superadmin/RestaurantManager').then(module => ({ default: module.RestaurantManager })));
+const ProductionQueue = lazy(() => import('./pages/superadmin/ProductionQueue').then(module => ({ default: module.ProductionQueue })));
+const SystemTools = lazy(() => import('./pages/superadmin/SystemTools').then(module => ({ default: module.SystemTools })));
 
 // Public Menu & Orders - Lazy Loaded (Optimization)
 const PublicMenu = lazy(() => import('./pages/PublicMenu').then(module => ({ default: module.PublicMenu })));
@@ -197,6 +199,8 @@ export default function App() {
                       <Route path="restaurants" element={<RestaurantManagement />} />
                       <Route path="restaurant/:id/*" element={<RestaurantManager />} />
                       <Route path="staff" element={<SuperAdminStaff />} />
+                      <Route path="studio" element={<ProductionQueue />} />
+                      <Route path="tools" element={<SystemTools />} />
                       <Route path="menus" element={<MenuManagement />} />
                       <Route path="tables" element={<AdminTableManagement />} />
                     </Routes>
