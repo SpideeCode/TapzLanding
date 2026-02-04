@@ -26,7 +26,6 @@ const navigation = [
     { name: 'Historique', href: '/admin/history', icon: History },
     { name: 'Menu & Cartes', href: '/admin/menu', icon: Coffee },
     { name: 'Tables & QR', href: '/admin/tables', icon: QrCode },
-    { name: 'Employés', href: '/admin/staff', icon: Users },
     { name: 'Paramètres', href: '/admin/settings', icon: Settings },
 ];
 

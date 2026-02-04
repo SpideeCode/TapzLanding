@@ -124,6 +124,7 @@ export default function App() {
           <Route path="/login" element={null} />
           <Route path="/onboarding/*" element={null} />
           <Route path="/m/*" element={null} />
+          <Route path="/order-success" element={null} />
           <Route path="*" element={
             <header className="container mx-auto px-6 py-6 transition-all duration-300">
               <nav className="flex items-center justify-between">
@@ -212,7 +213,6 @@ export default function App() {
                       <Route path="tables" element={<AdminTableManagement />} />
                       <Route path="tables/print" element={<PrintTables />} />
                       <Route path="settings" element={<RestaurantSettings />} />
-                      <Route path="staff" element={<div className="p-8 text-2xl font-bold bg-[#111113] text-white rounded-[2.5rem] border border-white/5 italic">Gestion Staff (À venir)</div>} />
                       <Route path="orders" element={<StaffOrders />} />
                       <Route path="history" element={<OrderHistory />} />
                     </Routes>
