@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -36,7 +36,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const location = useLocation();
 
-    React.useEffect(() => {
+    useEffect(() => {
         const getData = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
@@ -50,6 +50,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         };
         getData();
     }, []);
+
+    // Lock body scroll when sidebar is open on mobile
+    useEffect(() => {
+        if (sidebarOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [sidebarOpen]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
