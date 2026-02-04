@@ -7,9 +7,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          framer: ['framer-motion'],
-          lucide: ['lucide-react'],
+          vendor: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'lucide-react'],
           supabase: ['@supabase/supabase-js']
         }
       }
