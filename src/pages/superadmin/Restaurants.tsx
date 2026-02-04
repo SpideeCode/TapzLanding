@@ -28,14 +28,37 @@ export const RestaurantManagement: React.FC = () => {
 
     const fetchRestaurants = async () => {
         setLoading(true);
+        // Try RPC first
         const { data, error } = await supabase.rpc('get_restaurants_with_stats');
-        if (error) {
-            console.error(error);
-            // Fallback if RPC fails or not exists yet
-            const { data: fallbackData } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false });
-            setRestaurants(fallbackData || []);
+
+        if (!error && data) {
+            setRestaurants(data);
+        } else {
+            console.warn('RPC get_restaurants_with_stats failed, using fallback aggregation', error);
+
+            // Fallback: Fetch restaurants + all orders to aggregate stats client-side
+            const [{ data: resData }, { data: ordersData }] = await Promise.all([
+                supabase.from('restaurants').select('*').order('created_at', { ascending: false }),
+                supabase.from('orders').select('restaurant_id, total_price, commission_amount, created_at')
+            ]);
+
+            const aggregated = (resData || []).map((r: any) => {
+                const resOrders = (ordersData || []).filter((o: any) => o.restaurant_id === r.id);
+                const totalRevenue = resOrders.reduce((sum: number, o: any) => sum + (Number(o.total_price) || 0), 0);
+                const totalCommission = resOrders.reduce((sum: number, o: any) => sum + (Number(o.commission_amount) || 0), 0);
+                // Last order date
+                const lastOrder = resOrders.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
+                return {
+                    ...r,
+                    total_revenue: totalRevenue,
+                    total_commission: totalCommission,
+                    last_order_at: lastOrder?.created_at || null
+                };
+            });
+
+            setRestaurants(aggregated);
         }
-        else setRestaurants(data || []);
         setLoading(false);
     };
 
