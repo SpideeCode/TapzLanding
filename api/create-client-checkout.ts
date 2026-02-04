@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const { cart, restaurantId, tableId } = req.body;
+        const { cart, restaurantId, tableId, tipAmount } = req.body;
 
         if (!cart || !restaurantId || cart.length === 0) {
             return res.status(400).json({ error: 'Missing cart or restaurantId' });
@@ -42,27 +42,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(400).json({ error: 'Le montant minimum est de 0.50€' });
         }
 
-        // 1% Commission (in cents)
+        // 1% Commission (in cents) on PRODUCTS ONLY (Tip is 100% for the restaurant)
         const amountInCents = Math.round(subtotal * 100);
         const applicationFee = Math.round(amountInCents * 0.01);
+
+        // Prepare Line Items
+        const line_items = cart.map((item: any) => ({
+            price_data: {
+                currency: 'eur',
+                product_data: {
+                    name: item.name,
+                    images: item.image_url ? [item.image_url] : [],
+                    metadata: {
+                        itemId: item.id // Crucial for webhook to link back to DB item
+                    }
+                },
+                unit_amount: Math.round(item.price * 100),
+            },
+            quantity: item.quantity,
+        }));
+
+        // Add Tip Line Item if present
+        if (tipAmount && tipAmount > 0) {
+            line_items.push({
+                price_data: {
+                    currency: 'eur',
+                    product_data: {
+                        name: 'Pourboire Équipe (Tip)',
+                        description: 'Merci pour votre soutien ! 💖',
+                        // images: ['https://your-cdn.com/tip-icon.png'] // Optional
+                    },
+                    unit_amount: Math.round(tipAmount * 100),
+                },
+                quantity: 1,
+            });
+        }
 
         // 3. Create Stripe Checkout Session
         const session = await stripe.checkout.sessions.create({
             mode: 'payment',
-            line_items: cart.map((item: any) => ({
-                price_data: {
-                    currency: 'eur',
-                    product_data: {
-                        name: item.name,
-                        images: item.image_url ? [item.image_url] : [],
-                        metadata: {
-                            itemId: item.id // Crucial for webhook to link back to DB item
-                        }
-                    },
-                    unit_amount: Math.round(item.price * 100),
-                },
-                quantity: item.quantity,
-            })),
+            line_items: line_items,
             payment_intent_data: {
                 application_fee_amount: applicationFee,
                 transfer_data: {
