@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Plus, Search, Edit2, Trash2, Activity, ShieldCheck, ExternalLink, BarChart3 } from 'lucide-react';
+import { Plus, Search, Trash2, ShieldCheck, BarChart3 } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 
-id: string;
-name: string;
-slug: string;
-stripe_connect_id: string | null;
-stripe_details_submitted: boolean; // For stripe status
-subscription_status: string | null;
-plan_type: string | null;
-payments_enabled: boolean;
-created_at: string;
-total_revenue: number;
-total_commission: number;
-last_order_at: string | null;
+interface Restaurant {
+    id: string;
+    name: string;
+    slug: string;
+    stripe_connect_id: string | null;
+    stripe_details_submitted: boolean; // For stripe status
+    subscription_status: string | null;
+    plan_type: string | null;
+    payments_enabled: boolean;
+    created_at: string;
+    total_revenue: number;
+    total_commission: number;
+    last_order_at: string | null;
 }
 
 export const RestaurantManagement: React.FC = () => {
@@ -144,8 +145,8 @@ export const RestaurantManagement: React.FC = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col gap-1 items-start">
                                                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${res.plan_type === 'grande_reserve' ? 'bg-amber-100 text-amber-700 border-amber-200' :
-                                                        res.plan_type === 'business_lounge' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
-                                                            'bg-slate-50 text-slate-600 border-slate-100'
+                                                    res.plan_type === 'business_lounge' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
+                                                        'bg-slate-50 text-slate-600 border-slate-100'
                                                     }`}>
                                                     {res.plan_type?.replace('_', ' ') || 'STANDARD'}
                                                 </span>
