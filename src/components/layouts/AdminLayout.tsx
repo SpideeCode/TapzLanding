@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
     ClipboardList,
-    Users,
     Menu as MenuIcon,
     X,
     LogOut,
@@ -12,7 +11,8 @@ import {
     Utensils,
     QrCode,
     Store,
-    History
+    History,
+    AlertCircle
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -33,6 +33,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [paymentStatus, setPaymentStatus] = useState<{ enabled: boolean, connected: boolean } | null>(null);
     const location = useLocation();
 
     useEffect(() => {
@@ -42,8 +43,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 setUserEmail(user.email || null);
                 const { data: profile } = await supabase.from('profiles').select('restaurant_id').eq('id', user.id).single();
                 if (profile?.restaurant_id) {
-                    const { data: rest } = await supabase.from('restaurants').select('slug').eq('id', profile.restaurant_id).single();
-                    if (rest) setRestaurantSlug(rest.slug);
+                    const { data: rest } = await supabase.from('restaurants').select('slug, payments_enabled, stripe_connect_id').eq('id', profile.restaurant_id).single();
+                    if (rest) {
+                        setRestaurantSlug(rest.slug);
+                        setPaymentStatus({
+                            enabled: rest.payments_enabled,
+                            connected: !!rest.stripe_connect_id
+                        });
+                    }
                 }
             }
         };
@@ -209,6 +216,28 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
                 <main className="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar bg-white">
                     <div className="max-w-7xl mx-auto">
+                        {/* Payment Warning Banner */}
+                        {paymentStatus && (!paymentStatus.connected || !paymentStatus.enabled) && (
+                            <div className="mb-6 p-4 rounded-xl bg-orange-50 border border-orange-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-500">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-orange-100 rounded-lg text-orange-600">
+                                        <AlertCircle size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-orange-800">Paiements non configurés</h3>
+                                        <p className="text-sm text-orange-700 font-medium opacity-90">
+                                            Liez votre compte Stripe pour recevoir les paiements des clients. Le mode Public est désactivé.
+                                        </p>
+                                    </div>
+                                </div>
+                                <Link
+                                    to="/admin/settings"
+                                    className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold text-sm shadow-md shadow-orange-500/20 transition-all flex items-center gap-2 whitespace-nowrap"
+                                >
+                                    Configurer Stripe
+                                </Link>
+                            </div>
+                        )}
                         {children}
                     </div>
                 </main>

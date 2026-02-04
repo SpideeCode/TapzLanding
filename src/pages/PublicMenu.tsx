@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { useCart, CartItem } from '../hooks/useCart';
+import { useCart } from '../hooks/useCart';
 import {
     ShoppingBag,
     Plus,
@@ -83,8 +83,10 @@ export const PublicMenu: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [tipAmount, setTipAmount] = useState(0);
+    const [tipType, setTipType] = useState<'fixed' | 'percent' | 'custom'>('custom');
 
-    const { cart, addToCart, removeFromCart, clearCart, totalItems, totalPrice, isLoaded } = useCart(restaurant?.id || '');
+    const { cart, addToCart, removeFromCart, totalItems, totalPrice } = useCart(restaurant?.id || '');
 
     // --- Fetch Data ---
     useEffect(() => {
@@ -177,7 +179,8 @@ export const PublicMenu: React.FC = () => {
                     cart: cart,
                     restaurantId: restaurant.id,
                     tableId: tableId,
-                    slug: slug // Pass slug for cancel_url
+                    slug: slug, // Pass slug for cancel_url
+                    tipAmount: tipAmount
                 })
             });
 
@@ -501,10 +504,95 @@ export const PublicMenu: React.FC = () => {
                             )}
                         </div>
 
+                        {/* Tip Section */}
+                        <div className="p-6 bg-slate-50/50 border-t border-slate-100">
+                            <h3 className="font-bold mb-3 text-sm opacity-80">Un petit pourboire pour l'équipe ? 💖</h3>
+
+                            <div className="grid grid-cols-4 gap-2 mb-3">
+                                {totalPrice < 20 ? (
+                                    <>
+                                        <button
+                                            onClick={() => { setTipAmount(1); setTipType('fixed'); }}
+                                            className={`py-2 rounded-lg text-sm font-bold transition-all border ${tipAmount === 1 && tipType === 'fixed' ? 'bg-emerald-100 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}
+                                        >
+                                            +1€
+                                        </button>
+                                        <button
+                                            onClick={() => { setTipAmount(2); setTipType('fixed'); }}
+                                            className={`py-2 rounded-lg text-sm font-bold transition-all border ${tipAmount === 2 && tipType === 'fixed' ? 'bg-emerald-100 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}
+                                        >
+                                            +2€
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const rounded = Math.ceil(totalPrice);
+                                                const tip = rounded - totalPrice > 0 ? rounded - totalPrice : 1;
+                                                setTipAmount(Number(tip.toFixed(2)));
+                                                setTipType('fixed');
+                                            }}
+                                            className={`col-span-2 py-2 rounded-lg text-sm font-bold transition-all border ${tipType === 'fixed' && tipAmount !== 1 && tipAmount !== 2 && tipAmount > 0 ? 'bg-emerald-100 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}
+                                        >
+                                            Arrondir ({Math.ceil(totalPrice) === totalPrice ? (totalPrice + 1).toFixed(2) : Math.ceil(totalPrice).toFixed(2)}€)
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        {[0.05, 0.10, 0.15].map(pct => (
+                                            <button
+                                                key={pct}
+                                                onClick={() => {
+                                                    setTipAmount(Number((totalPrice * pct).toFixed(2)));
+                                                    setTipType('percent');
+                                                }}
+                                                className={`py-2 rounded-lg text-sm font-bold transition-all border ${tipAmount === Number((totalPrice * pct).toFixed(2)) && tipType === 'percent' ? 'bg-emerald-100 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}
+                                            >
+                                                {pct * 100}%
+                                            </button>
+                                        ))}
+                                        <button
+                                            onClick={() => { setTipAmount(0); setTipType('custom'); }}
+                                            className={`py-2 rounded-lg text-sm font-bold transition-all border ${tipAmount === 0 && tipType !== 'custom' ? 'bg-emerald-100 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600'}`}
+                                        >
+                                            Non merci
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">€</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.10"
+                                    placeholder="Autre montant"
+                                    value={tipType === 'custom' ? tipAmount || '' : ''}
+                                    onChange={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        setTipAmount(isNaN(val) ? 0 : val);
+                                        setTipType('custom');
+                                    }}
+                                    className={`w-full pl-8 pr-4 py-2 rounded-xl border font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${tipType === 'custom' && tipAmount > 0 ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}
+                                />
+                            </div>
+                        </div>
+
                         <div className={`p-6 border-t ${isBgLight ? 'bg-slate-50 border-slate-100' : 'bg-slate-800/50 border-slate-800'}`}>
-                            <div className="flex justify-between items-center mb-6">
-                                <span className="text-lg font-bold opacity-70">Total à payer</span>
-                                <span className="text-3xl font-bold">{totalPrice.toFixed(2)}€</span>
+                            <div className="space-y-2 mb-6">
+                                <div className="flex justify-between items-center text-sm opacity-60">
+                                    <span>Sous-total</span>
+                                    <span>{totalPrice.toFixed(2)}€</span>
+                                </div>
+                                {tipAmount > 0 && (
+                                    <div className="flex justify-between items-center text-sm text-emerald-600 font-bold">
+                                        <span>Pourboire</span>
+                                        <span>+{tipAmount.toFixed(2)}€</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center pt-2 border-t border-dashed border-gray-200">
+                                    <span className="text-lg font-bold opacity-70">Total à payer</span>
+                                    <span className="text-3xl font-bold">{(totalPrice + tipAmount).toFixed(2)}€</span>
+                                </div>
                             </div>
                             <button
                                 onClick={handleCheckout}
@@ -512,7 +600,7 @@ export const PublicMenu: React.FC = () => {
                                 className="w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 style={{ backgroundColor: primaryColor, color: isLightColor(primaryColor) ? '#000' : '#FFF' }}
                             >
-                                {isSubmitting ? 'Envoi...' : 'Commander'}
+                                {isSubmitting ? 'Envoi...' : `Payer ${(totalPrice + tipAmount).toFixed(2)}€`}
                             </button>
                         </div>
                     </div>

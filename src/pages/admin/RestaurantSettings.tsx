@@ -376,19 +376,33 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                 <Globe size={32} strokeWidth={2.5} />
                             </div>
                             <div className="relative z-10">
-                                <h3 className="text-[10px] font-black text-blue-100 uppercase tracking-[0.2em] mb-2">Lien public de votre menu :</h3>
-                                <p className="text-2xl font-black text-white italic tracking-tighter">
+                                <h3 className="text-[10px] font-black text-blue-100 uppercase tracking-[0.2em] mb-2">Lien public menu :</h3>
+                                <p className={`text-2xl font-black italic tracking-tighter ${restaurant?.payments_enabled ? 'text-white' : 'text-blue-200/50 line-through'}`}>
                                     tapzy.app/m/{slug || '...'}
                                 </p>
+                                {!restaurant?.payments_enabled && (
+                                    <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-orange-500/20 border border-orange-500/30 rounded-lg text-orange-200 text-[10px] font-bold uppercase tracking-widest">
+                                        <AlertCircle size={12} /> Configurer les paiements
+                                    </div>
+                                )}
                             </div>
-                            <a
-                                href={`/m/${slug}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="ml-auto w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-white hover:bg-white hover:text-blue-600 transition-all active:scale-90 relative z-10 border border-white/20"
-                            >
-                                <LinkIcon size={24} strokeWidth={2.5} />
-                            </a>
+                            {restaurant?.payments_enabled ? (
+                                <a
+                                    href={`/m/${slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="ml-auto w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-white hover:bg-white hover:text-blue-600 transition-all active:scale-90 relative z-10 border border-white/20"
+                                >
+                                    <LinkIcon size={24} strokeWidth={2.5} />
+                                </a>
+                            ) : (
+                                <button
+                                    disabled
+                                    className="ml-auto w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-white/20 cursor-not-allowed border border-white/5 relative z-10"
+                                >
+                                    <LinkIcon size={24} strokeWidth={2.5} />
+                                </button>
+                            )}
                         </div>
 
                         {/* General Info Section */}

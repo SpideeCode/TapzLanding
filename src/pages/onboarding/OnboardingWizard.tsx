@@ -61,6 +61,24 @@ export const OnboardingWizard: React.FC = () => {
 
             if (profileError) throw profileError;
 
+            // 4. Create Default Categories
+            const defaultCategories = [
+                { name: 'Entrées', display_order: 1 },
+                { name: 'Plats', display_order: 2 },
+                { name: 'Desserts', display_order: 3 },
+                { name: 'Boissons', display_order: 4 }
+            ];
+
+            const { error: catError } = await supabase
+                .from('menus_categories')
+                .insert(defaultCategories.map(cat => ({
+                    restaurant_id: restaurantId,
+                    name: cat.name,
+                    display_order: cat.display_order
+                })));
+
+            if (catError) throw catError;
+
             setCreatedRestaurantId(restaurantId);
             setStep(2); // Move to Config
         } catch (err: any) {
