@@ -636,7 +636,7 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                                 <div className="flex items-center gap-3 text-emerald-600 font-black uppercase tracking-widest text-xs bg-emerald-50 p-4 rounded-xl border border-emerald-100">
                                                     <CheckCircle2 size={16} /> Connecté à Stripe
                                                 </div>
-                                                <div className="space-y-2 pt-2 border-t border-slate-200">
+                                                {/* <div className="space-y-2 pt-2 border-t border-slate-200">
                                                     <div className="flex justify-between">
                                                         <span className="text-xs font-bold text-slate-400 uppercase">Total Encaissé</span>
                                                         <span className="font-black text-slate-900">
@@ -649,12 +649,12 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                                             {stats ? ((stats.total_commission || 0) / 100).toFixed(2) : '0.00'} €
                                                         </span>
                                                     </div>
-                                                </div>
+                                                </div> */}
                                                 <button
                                                     type="button"
                                                     onClick={handleConnectStripe}
                                                     disabled={actionLoading}
-                                                    className="w-full py-3 mt-2 bg-white border-2 border-slate-200 hover:border-slate-900 text-slate-500 hover:text-slate-900 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all"
+                                                    className="w-full py-3  bg-white border-2 border-slate-200 hover:border-slate-900 text-slate-500 hover:text-slate-900 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all"
                                                 >
                                                     Accéder au Dashboard Stripe (Voir mes revenus)
                                                 </button>
