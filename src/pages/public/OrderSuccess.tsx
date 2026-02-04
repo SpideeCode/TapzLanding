@@ -91,6 +91,11 @@ export const OrderSuccess: React.FC = () => {
                     </div>
 
                     <h1 className="text-3xl font-bold text-slate-900 mb-2">Paiement Réussi !</h1>
+                    {sessionId && (
+                        <p className="text-xs font-mono text-slate-400 mb-2 uppercase tracking-widest">
+                            Ref: {sessionId.slice(-8)}
+                        </p>
+                    )}
                     <p className="text-slate-500 mb-8">
                         Votre commande est en cuisine.
                     </p>
@@ -140,12 +145,14 @@ export const OrderSuccess: React.FC = () => {
 
                 {/* Powered By Footer */}
                 <div className="text-center">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest flex items-center justify-center gap-1.5 opacity-60">
-                        Powered by
-                        <span className="font-black text-slate-600 flex items-center gap-1">
-                            Tapzy
+                    <a href="/" className="inline-flex flex-col items-center group opacity-60 hover:opacity-100 transition-opacity">
+                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                            Powered by
+                            <span className="font-black text-slate-600 flex items-center gap-1 group-hover:text-blue-600 transition-colors">
+                                Tapzy
+                            </span>
                         </span>
-                    </p>
+                    </a>
                 </div>
             </div>
         </div>

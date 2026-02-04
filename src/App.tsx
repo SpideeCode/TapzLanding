@@ -246,6 +246,7 @@ export default function App() {
           <Route path="/login" element={null} />
           <Route path="/onboarding/*" element={null} />
           <Route path="/m/*" element={null} />
+          <Route path="/order-success" element={null} />
           <Route path="*" element={
             <footer className="bg-[#0A0A0B] py-12 border-t border-[#1A1A1B]">
               <div className="container mx-auto px-6">
