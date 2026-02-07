@@ -40,7 +40,6 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
     const [savingPin, setSavingPin] = useState(false);
     const [actionLoading, setActionLoading] = useState(false); // For connect/subscription buttons
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-    const [stats, setStats] = useState<{ total_revenue: number, total_commission: number } | null>(null);
     const [activeTab, setActiveTab] = useState<'general' | 'branding' | 'monetization' | 'staff'>('general');
 
     // Form fields
@@ -81,18 +80,6 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                     setStaffCode(res.staff_access_code || '');
 
                     // Fetch Stats
-                    // Fetch Stats directly (No RPC needed)
-                    const { data: orders } = await supabase
-                        .from('orders')
-                        .select('total_amount, application_fee_amount')
-                        .eq('restaurant_id', res.id)
-                        .eq('status', 'paid');
-
-                    if (orders) {
-                        const total_revenue = orders.reduce((acc, order) => acc + (order.total_amount || 0), 0);
-                        const total_commission = orders.reduce((acc, order) => acc + (order.application_fee_amount || 0), 0);
-                        setStats({ total_revenue, total_commission });
-                    }
                 }
             }
             setLoading(false);
@@ -524,38 +511,44 @@ export const RestaurantSettings: React.FC<{ restaurantId?: string }> = ({ restau
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                     <div className="space-y-4">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 italic">Couleur Principale</label>
-                                        <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-[1.5rem] border-2 border-slate-100">
+                                        <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-[1.5rem] border-2 border-slate-100 opacity-50 cursor-not-allowed relative group">
                                             <input
                                                 type="color"
+                                                disabled
                                                 value={primaryColor}
                                                 onChange={(e) => setPrimaryColor(e.target.value)}
-                                                className="w-16 h-16 rounded-2xl border-none cursor-pointer p-1 bg-white shadow-sm"
+                                                className="w-16 h-16 rounded-2xl border-none cursor-not-allowed p-1 bg-white shadow-sm"
                                             />
                                             <span className="font-black text-slate-600 uppercase tracking-widest text-sm">{primaryColor}</span>
+                                            <div className="absolute inset-0 z-10" title="Modification désactivée" />
                                         </div>
                                     </div>
                                     <div className="space-y-4">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 italic">Couleur de Fond</label>
-                                        <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-[1.5rem] border-2 border-slate-100">
+                                        <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-[1.5rem] border-2 border-slate-100 opacity-50 cursor-not-allowed relative group">
                                             <input
                                                 type="color"
+                                                disabled
                                                 value={backgroundColor}
                                                 onChange={(e) => setBackgroundColor(e.target.value)}
-                                                className="w-16 h-16 rounded-2xl border-none cursor-pointer p-1 bg-white shadow-sm"
+                                                className="w-16 h-16 rounded-2xl border-none cursor-not-allowed p-1 bg-white shadow-sm"
                                             />
                                             <span className="font-black text-slate-600 uppercase tracking-widest text-sm">{backgroundColor}</span>
+                                            <div className="absolute inset-0 z-10" title="Modification désactivée" />
                                         </div>
                                     </div>
                                     <div className="space-y-4">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 italic">Couleur du Texte</label>
-                                        <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-[1.5rem] border-2 border-slate-100">
+                                        <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-[1.5rem] border-2 border-slate-100 opacity-50 cursor-not-allowed relative group">
                                             <input
                                                 type="color"
+                                                disabled
                                                 value={fontColor}
                                                 onChange={(e) => setFontColor(e.target.value)}
-                                                className="w-16 h-16 rounded-2xl border-none cursor-pointer p-1 bg-white shadow-sm"
+                                                className="w-16 h-16 rounded-2xl border-none cursor-not-allowed p-1 bg-white shadow-sm"
                                             />
                                             <span className="font-black text-slate-600 uppercase tracking-widest text-sm">{fontColor}</span>
+                                            <div className="absolute inset-0 z-10" title="Modification désactivée" />
                                         </div>
                                     </div>
                                 </div>
