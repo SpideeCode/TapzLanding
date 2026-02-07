@@ -150,6 +150,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 // So we will pass the cart items map in metadata? No, strict limit.
                 // We will rely on expanding line_items in the webhook to recreate the order.
             },
+            invoice_creation: {
+                enabled: true,
+            },
+            customer_email: req.body.customerEmail || undefined,
             success_url: `${process.env.VITE_APP_URL}/order-success?session_id={CHECKOUT_SESSION_ID}&restaurantId=${restaurantId}`,
             cancel_url: `${process.env.VITE_APP_URL}/m/${req.body.slug || 'menu'}?canceled=true`, // Need slug passed in body or derived
         });

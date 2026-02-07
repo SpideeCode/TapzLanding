@@ -89,6 +89,7 @@ export const PublicMenu: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [tipAmount, setTipAmount] = useState(0);
     const [tipType, setTipType] = useState<'fixed' | 'percent' | 'custom'>('custom');
+    const [customerEmail, setCustomerEmail] = useState('');
 
     const { cart, addToCart, removeFromCart, totalItems, totalPrice } = useCart(restaurant?.id || '');
 
@@ -193,7 +194,8 @@ export const PublicMenu: React.FC = () => {
                     restaurantId: restaurant.id,
                     tableId: tableId,
                     slug: slug, // Pass slug for cancel_url
-                    tipAmount: tipAmount
+                    tipAmount: tipAmount,
+                    customerEmail: customerEmail || undefined
                 })
             });
 
@@ -693,6 +695,28 @@ export const PublicMenu: React.FC = () => {
 
                         {/* Tip & Checkout */}
                         <div className="p-6 bg-white border-t border-slate-100">
+                            {/* Email for Receipt (Optional) */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-bold text-slate-900 mb-2">
+                                    Recevoir votre reçu par email ? <span className="text-slate-400 font-normal">(optionnel)</span>
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span className="text-slate-400">@</span>
+                                    </div>
+                                    <input
+                                        type="email"
+                                        value={customerEmail}
+                                        onChange={(e) => setCustomerEmail(e.target.value)}
+                                        placeholder="votre@email.com"
+                                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all text-sm font-medium"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+                                    Si renseigné, nous vous enverrons automatiquement la facture.
+                                </p>
+                            </div>
+
                             {/* Tipping Section - Restored */}
                             <div className="mb-6">
                                 <label className="block text-sm font-bold text-slate-900 mb-3">Pourboire pour l'équipe ❤️</label>
