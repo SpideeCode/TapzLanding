@@ -18,6 +18,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const { cart, restaurantId, tableId, tipAmount } = req.body;
 
+        // 0. Rate Limiting Check (Simple version using identifier = IP + tableId)
+        const forwarded = req.headers['x-forwarded-for'];
+        const ip = typeof forwarded === 'string' ? forwarded.split(/, /)[0] : req.socket.remoteAddress;
+        const identifier = `${ip}-${tableId || 'no-table'}`;
+
+        // Count attempts in the last minute
+        const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString();
+        const { count, error: countError } = await supabase
+            .from('checkout_attempts')
+            .select('*', { count: 'exact', head: true })
+            .eq('identifier', identifier)
+            .gte('created_at', oneMinuteAgo);
+
+        if (countError) {
+            console.error('Rate limit check error:', countError);
+        } else if (count && count >= 5) {
+            return res.status(429).json({ error: 'Trop de tentatives de paiement. Veuillez patienter une minute.' });
+        }
+
+        // Log this attempt
+        await supabase.from('checkout_attempts').insert([{ identifier }]);
+
         if (!cart || !restaurantId || cart.length === 0) {
             return res.status(400).json({ error: 'Missing cart or restaurantId' });
         }
@@ -34,8 +56,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(400).json({ error: 'Ce restaurant n\'accepte pas encore les paiements en ligne.' });
         }
 
-        // 2. Calculate Totals & Fee
-        const subtotal = cart.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
+        // 2. Fetch Item Prices from Supabase to prevent frontend manipulation
+        const itemIds = cart.map((i: any) => i.id);
+        const { data: dbItems, error: itemsError } = await supabase
+            .from('items')
+            .select('id, name, price, image_url')
+            .in('id', itemIds);
+
+        if (itemsError || !dbItems || dbItems.length === 0) {
+            return res.status(400).json({ error: 'Certains articles n\'existent plus.' });
+        }
+
+        // Create a map for quick lookup
+        const itemMap = new Map(dbItems.map(item => [item.id, item]));
+
+        // Calculate Totals & Fee using DB prices
+        let subtotal = 0;
+        const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+
+        for (const cartItem of cart) {
+            const dbItem = itemMap.get(cartItem.id);
+            if (!dbItem) continue; // Or throw error if you prefer strict validation
+
+            const unitAmount = Math.round(dbItem.price * 100);
+            subtotal += (dbItem.price * cartItem.quantity);
+
+            line_items.push({
+                price_data: {
+                    currency: 'eur',
+                    product_data: {
+                        name: dbItem.name,
+                        images: dbItem.image_url ? [dbItem.image_url] : [],
+                        metadata: {
+                            itemId: dbItem.id // Crucial for webhook
+                        }
+                    },
+                    unit_amount: unitAmount,
+                },
+                quantity: cartItem.quantity,
+            });
+        }
 
         // Ensure minimum amount (e.g. 0.50 EUR)
         if (subtotal < 0.50) {
@@ -46,23 +106,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const amountInCents = Math.round(subtotal * 100);
         const applicationFee = Math.round(amountInCents * 0.01);
 
-        // Prepare Line Items
-        const line_items = cart.map((item: any) => ({
-            price_data: {
-                currency: 'eur',
-                product_data: {
-                    name: item.name,
-                    images: item.image_url ? [item.image_url] : [],
-                    metadata: {
-                        itemId: item.id // Crucial for webhook to link back to DB item
-                    }
-                },
-                unit_amount: Math.round(item.price * 100),
-            },
-            quantity: item.quantity,
-        }));
-
-        // Add Tip Line Item if present
+        // Add Tip Line Item if present (tipAmount comes from frontend as it's user-defined)
         if (tipAmount && tipAmount > 0) {
             line_items.push({
                 price_data: {
@@ -70,7 +114,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     product_data: {
                         name: 'Pourboire Équipe (Tip)',
                         description: 'Merci pour votre soutien ! 💖',
-                        // images: ['https://your-cdn.com/tip-icon.png'] // Optional
                     },
                     unit_amount: Math.round(tipAmount * 100),
                 },

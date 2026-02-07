@@ -176,7 +176,7 @@ export const PublicMenu: React.FC = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    cart: cart,
+                    cart: cart.map(item => ({ id: item.id, quantity: item.quantity })),
                     restaurantId: restaurant.id,
                     tableId: tableId,
                     slug: slug, // Pass slug for cancel_url
