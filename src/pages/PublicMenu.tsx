@@ -111,30 +111,18 @@ export const PublicMenu: React.FC = () => {
                 ]);
 
                 setCategories(catRes.data || []);
-                setCategories(catRes.data || []);
-
-                // Patch items with images if missing (for demo/dev)
-                const patchedItems = (itemRes.data || []).map(item => {
-                    // Force Burger Image
-                    if (item.name.toLowerCase().includes('burger') && !item.image_url) {
-                        return { ...item, image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' };
-                    }
-                    return item;
-                });
-                setItems(patchedItems);
+                setItems(itemRes.data || []);
+                if (catRes.data && catRes.data.length > 0) setActiveCategory(catRes.data[0].id);
                 const sortedTables = (tableRes.data || []).sort((a, b) =>
                     a.table_number.localeCompare(b.table_number, undefined, { numeric: true })
                 );
                 setTables(sortedTables);
-                if (catRes.data && catRes.data.length > 0) setActiveCategory(catRes.data[0].id);
-
             } catch (err: any) {
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
-        fetchAllData();
         fetchAllData();
     }, [slug]);
 
