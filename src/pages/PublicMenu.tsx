@@ -111,7 +111,17 @@ export const PublicMenu: React.FC = () => {
                 ]);
 
                 setCategories(catRes.data || []);
-                setItems(itemRes.data || []);
+                setCategories(catRes.data || []);
+
+                // Patch items with images if missing (for demo/dev)
+                const patchedItems = (itemRes.data || []).map(item => {
+                    // Force Burger Image
+                    if (item.name.toLowerCase().includes('burger') && !item.image_url) {
+                        return { ...item, image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' };
+                    }
+                    return item;
+                });
+                setItems(patchedItems);
                 const sortedTables = (tableRes.data || []).sort((a, b) =>
                     a.table_number.localeCompare(b.table_number, undefined, { numeric: true })
                 );
@@ -157,6 +167,17 @@ export const PublicMenu: React.FC = () => {
             return () => clearTimeout(timer);
         }
     }, [loading, searchParams, tables, slug]);
+
+    // Lock Body Scroll when Modal is Open
+    useEffect(() => {
+        if (selectedItem || showCartModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => { document.body.style.overflow = 'unset'; };
+    }, [selectedItem, showCartModal]);
+
     // --- Checkout Logic ---
     const handleCheckout = async () => {
         if (!restaurant || cart.length === 0) return;
@@ -290,6 +311,8 @@ export const PublicMenu: React.FC = () => {
                         </div>
                     ) : (
                         <div className="w-full h-full relative">
+                            {/* Mock data for an item, if needed for testing purposes: */}
+                            {/* { id: '1', name: 'Burger Signature', price: 14.50, category: 'Plats', image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', model_3d_glb: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb', description: 'Un burger juteux avec du fromage fondant et notre sauce secrète, servi avec des frites maison.' } */}
                             <img
                                 src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80"
                                 className="w-full h-full object-cover opacity-90"
@@ -481,9 +504,10 @@ export const PublicMenu: React.FC = () => {
                                                                 e.stopPropagation();
                                                                 setSelectedItem(item);
                                                             }}
-                                                            className="w-full h-full rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-600 transition-colors shadow-sm active:scale-95"
+                                                            className="w-full h-full rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 flex flex-col items-center justify-center text-orange-600 transition-colors shadow-sm active:scale-95 gap-0.5"
                                                         >
-                                                            <Box size={24} className="stroke-[2.5]" />
+                                                            <Box size={20} className="stroke-[2.5]" />
+                                                            <span className="text-[10px] font-black uppercase tracking-wider leading-none">Voir 3D</span>
                                                         </button>
                                                     )}
 
@@ -800,15 +824,41 @@ export const PublicMenu: React.FC = () => {
                                 {selectedItem.description || "Aucune description détaillée."}
                             </p>
 
-                            <button
-                                onClick={() => {
-                                    addToCart({ id: selectedItem.id, name: selectedItem.name, price: selectedItem.price, image_url: selectedItem.image_url || undefined });
-                                    setSelectedItem(null);
-                                }}
-                                className="w-full py-4 text-white bg-amber-500 rounded-[1.5rem] font-black uppercase text-sm tracking-widest shadow-xl shadow-amber-500/20 active:scale-95 transition-all hover:bg-amber-600"
-                            >
-                                Ajouter au panier
-                            </button>
+                            {/* Dynamic Add to Cart Button in Modal */}
+                            {(() => {
+                                const cartItem = cart.find(c => c.id === selectedItem.id);
+                                const quantity = cartItem ? cartItem.quantity : 0;
+
+                                if (quantity > 0) {
+                                    return (
+                                        <div className="w-full h-16 bg-orange-500 rounded-[1.5rem] flex items-center justify-between px-6 text-white shadow-xl shadow-orange-500/20">
+                                            <button
+                                                onClick={() => removeFromCart(selectedItem.id)}
+                                                className="w-12 h-12 flex items-center justify-center hover:bg-orange-600 rounded-full transition-colors active:scale-95"
+                                            >
+                                                <Minus size={24} strokeWidth={3} />
+                                            </button>
+                                            <span className="font-black text-3xl font-sans">{quantity}</span>
+                                            <button
+                                                onClick={() => addToCart({ id: selectedItem.id, name: selectedItem.name, price: selectedItem.price, image_url: selectedItem.image_url || undefined })}
+                                                className="w-12 h-12 flex items-center justify-center hover:bg-orange-600 rounded-full transition-colors active:scale-95"
+                                            >
+                                                <Plus size={24} strokeWidth={3} />
+                                            </button>
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <button
+                                        onClick={() => addToCart({ id: selectedItem.id, name: selectedItem.name, price: selectedItem.price, image_url: selectedItem.image_url || undefined })}
+                                        className="w-full py-4 text-white bg-orange-500 rounded-[1.5rem] font-black uppercase text-sm tracking-widest shadow-xl shadow-orange-500/20 active:scale-95 transition-all hover:bg-orange-600 flex items-center justify-center gap-3"
+                                    >
+                                        <span>Ajouter au panier</span>
+                                        <div className="bg-white/20 p-1 rounded-full"><Plus size={16} strokeWidth={3} /></div>
+                                    </button>
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
