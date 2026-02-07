@@ -295,69 +295,115 @@ export const MenuManagement: React.FC<{ restaurantId?: string }> = ({ restaurant
 
             {/* List */}
             {activeTab === 'items' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {filteredItems.map(item => (
-                        <div key={item.id} className="bg-white rounded-[2.5rem] border-2 border-slate-50 overflow-hidden group hover:border-blue-100 transition-all duration-500 relative flex flex-col shadow-sm">
-                            <div className="h-56 relative overflow-hidden bg-gray-50">
-                                {item.image_url ? (
-                                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-slate-200">
-                                        <Package size={64} strokeWidth={1} />
-                                    </div>
-                                )}
-                                <div className="absolute top-4 right-4 translate-y-[-120%] group-hover:translate-y-0 transition-transform duration-300 flex gap-2">
-                                    <button
-                                        onClick={() => {
-                                            setEditingItem(item);
-                                            setItemName(item.name);
-                                            setItemDesc(item.description);
-                                            setItemPrice(item.price.toString());
-                                            setItemCatId(item.category_id);
-                                            setItemImage(item.image_url || '');
-                                            setFileGlb(null);
-                                            setFileUsdz(null);
-                                            setShowItemModal(true);
-                                        }}
-                                        className="bg-white text-slate-900 p-3 rounded-xl shadow-xl active:scale-95 hover:bg-blue-600 hover:text-white transition-colors"
-                                    >
-                                        <Edit2 size={16} strokeWidth={2.5} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteItem(item.id)}
-                                        className="bg-white text-red-600 p-3 rounded-xl shadow-xl active:scale-95 hover:bg-red-600 hover:text-white transition-colors"
-                                    >
-                                        <Trash2 size={16} strokeWidth={2.5} />
-                                    </button>
+                <div className="space-y-16">
+                    {categories.map(cat => {
+                        const catItems = filteredItems.filter(i => i.category_id === cat.id);
+                        if (catItems.length === 0) return null;
+
+                        return (
+                            <div key={cat.id} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                <div className="flex items-center gap-4 mb-8">
+                                    <h2 className="text-2xl font-black text-slate-900 italic tracking-tight uppercase">{cat.name}</h2>
+                                    <div className="h-0.5 flex-1 bg-slate-100 rounded-full"></div>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full border border-slate-100">{catItems.length} PLATS</span>
                                 </div>
-                                <div className="absolute bottom-4 left-4">
-                                    <span className="bg-white/90 backdrop-blur-md text-slate-900 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm border border-black/5">
-                                        {categories.find(c => c.id === item.category_id)?.name || 'Sans catégorie'}
-                                    </span>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {catItems.map(item => (
+                                        <div key={item.id} className="bg-white rounded-[2.5rem] border-2 border-slate-50 overflow-hidden group hover:border-blue-100 transition-all duration-500 relative flex flex-col shadow-sm">
+                                            <div className="h-56 relative overflow-hidden bg-gray-50">
+                                                {item.image_url ? (
+                                                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-200">
+                                                        <Package size={64} strokeWidth={1} />
+                                                    </div>
+                                                )}
+                                                <div className="absolute top-4 right-4 translate-y-[-120%] group-hover:translate-y-0 transition-transform duration-300 flex gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingItem(item);
+                                                            setItemName(item.name);
+                                                            setItemDesc(item.description);
+                                                            setItemPrice(item.price.toString());
+                                                            setItemCatId(item.category_id);
+                                                            setItemImage(item.image_url || '');
+                                                            setFileGlb(null);
+                                                            setFileUsdz(null);
+                                                            setShowItemModal(true);
+                                                        }}
+                                                        className="bg-white text-slate-900 p-3 rounded-xl shadow-xl active:scale-95 hover:bg-blue-600 hover:text-white transition-colors"
+                                                    >
+                                                        <Edit2 size={16} strokeWidth={2.5} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteItem(item.id)}
+                                                        className="bg-white text-red-600 p-3 rounded-xl shadow-xl active:scale-95 hover:bg-red-600 hover:text-white transition-colors"
+                                                    >
+                                                        <Trash2 size={16} strokeWidth={2.5} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="p-8 flex-1 flex flex-col">
+                                                <div className="flex justify-between items-start gap-4 mb-3">
+                                                    <h3 className="text-xl font-black text-slate-900 italic tracking-tight uppercase leading-tight">{item.name}</h3>
+                                                    <span className="text-2xl font-black text-blue-600 tracking-tighter shrink-0">{item.price.toFixed(2)}€</span>
+                                                </div>
+                                                <p className="text-gray-400 text-xs font-bold leading-relaxed line-clamp-2 mb-8 italic">
+                                                    {item.description || "Aucune description détaillée."}
+                                                </p>
+                                                <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${item.is_available ? 'text-emerald-600' : 'text-red-500'}`}>
+                                                        {item.is_available ? '• En Stock' : '• Épuisé'}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => toggleAvailability(item)}
+                                                        className={`w-12 h-6 rounded-full relative transition-all ${item.is_available ? 'bg-blue-600' : 'bg-gray-200'}`}
+                                                    >
+                                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${item.is_available ? 'left-7' : 'left-1'}`} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                            <div className="p-8 flex-1 flex flex-col">
-                                <div className="flex justify-between items-start gap-4 mb-3">
-                                    <h3 className="text-xl font-black text-slate-900 italic tracking-tight uppercase leading-tight">{item.name}</h3>
-                                    <span className="text-2xl font-black text-blue-600 tracking-tighter shrink-0">{item.price.toFixed(2)}€</span>
-                                </div>
-                                <p className="text-gray-400 text-xs font-bold leading-relaxed line-clamp-2 mb-8 italic">
-                                    {item.description || "Aucune description détaillée."}
-                                </p>
-                                <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
-                                    <span className={`text-[10px] font-black uppercase tracking-widest ${item.is_available ? 'text-emerald-600' : 'text-red-500'}`}>
-                                        {item.is_available ? '• En Stock' : '• Épuisé'}
-                                    </span>
-                                    <button
-                                        onClick={() => toggleAvailability(item)}
-                                        className={`w-12 h-6 rounded-full relative transition-all ${item.is_available ? 'bg-blue-600' : 'bg-gray-200'}`}
-                                    >
-                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${item.is_available ? 'left-7' : 'left-1'}`} />
-                                    </button>
-                                </div>
+                        );
+                    })}
+
+                    {/* Uncategorized Items (Safety net) */}
+                    {items.filter(i => !categories.find(c => c.id === i.category_id)).length > 0 && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="flex items-center gap-4 mb-8">
+                                <h2 className="text-2xl font-black text-slate-400 italic tracking-tight uppercase">Non classé / Orphelins</h2>
+                                <div className="h-0.5 flex-1 bg-slate-50 rounded-full"></div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {items.filter(i => !categories.find(c => c.id === i.category_id)).map(item => (
+                                    <div key={item.id} className="bg-white rounded-[2.5rem] border-2 border-slate-50 overflow-hidden group hover:border-blue-100 transition-all duration-500 relative flex flex-col shadow-sm opacity-75">
+                                        {/* Simplified card for uncategorized */}
+                                        <div className="h-40 relative overflow-hidden bg-gray-50">
+                                            {item.image_url ? (
+                                                <img src={item.image_url} alt={item.name} className="w-full h-full object-cover grayscale" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-200">
+                                                    <Package size={48} strokeWidth={1} />
+                                                </div>
+                                            )}
+                                            <div className="absolute top-4 right-4 flex gap-2">
+                                                <button onClick={() => { setEditingItem(item); setItemName(item.name); setItemDesc(item.description); setItemPrice(item.price.toString()); setItemCatId(categories[0]?.id || ''); setItemImage(item.image_url || ''); setFileGlb(null); setFileUsdz(null); setShowItemModal(true); }} className="bg-white text-slate-900 p-2 rounded-lg shadow-md hover:bg-blue-600 hover:text-white"><Edit2 size={14} /></button>
+                                                <button onClick={() => handleDeleteItem(item.id)} className="bg-white text-red-600 p-2 rounded-lg shadow-md hover:bg-red-600 hover:text-white"><Trash2 size={14} /></button>
+                                            </div>
+                                        </div>
+                                        <div className="p-6 flex-1">
+                                            <h3 className="text-lg font-black text-slate-900 italic uppercase">{item.name}</h3>
+                                            <p className="text-sm font-bold text-red-400 mt-2">Catégorie manquante !</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    ))}
+                    )}
+
                     {filteredItems.length === 0 && !loading && (
                         <div className="col-span-full py-24 text-center bg-gray-50 rounded-[3rem] border-2 border-dashed border-slate-100">
                             <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">

@@ -284,7 +284,7 @@ export const PublicMenu: React.FC = () => {
 
     // --- Main Render ---
     return (
-        <div className={`min-h-screen font-sans selection:bg-black/10 transition-colors duration-300`} style={{ backgroundColor: bgColor, color: fontColor }}>
+        <div className={`min-h-[100dvh] font-sans selection:bg-black/10 transition-colors duration-300`} style={{ backgroundColor: bgColor, color: fontColor }}>
 
             {/* Header (Banner / Hero) */}
             <div className="relative">
@@ -321,28 +321,23 @@ export const PublicMenu: React.FC = () => {
                                 <img src={restaurant.logo_url} className="w-full h-full object-cover rounded-[1.8rem]" alt="Logo" />
                             </motion.div>
                         )}
-                        <div className="text-slate-900 drop-shadow-sm">
-                            <motion.h1
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-4xl md:text-7xl font-serif font-bold tracking-tight mb-2"
-                            >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-[2rem] shadow-xl border border-white/50 flex flex-col items-start gap-1"
+                        >
+                            <h1 className="text-3xl md:text-5xl font-serif font-black tracking-tight text-slate-900 leading-none">
                                 {restaurant.name}
-                            </motion.h1>
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.2 }}
-                                className="flex items-center gap-3 text-sm md:text-lg font-medium"
-                            >
-                                <span className="bg-amber-100 text-amber-600 border border-amber-200 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
+                            </h1>
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                                <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm shadow-amber-500/20">
                                     Gastronomie
                                 </span>
-                                <span className="opacity-70 flex items-center gap-1 font-medium">
-                                    <UtensilsCrossed size={16} /> Cuisine de passion
+                                <span className="text-slate-500 text-xs font-bold italic flex items-center gap-1 opacity-80">
+                                    <UtensilsCrossed size={12} /> Cuisine de passion
                                 </span>
-                            </motion.div>
-                        </div>
+                            </div>
+                        </motion.div>
                     </div>
 
                     <motion.button
@@ -443,10 +438,10 @@ export const PublicMenu: React.FC = () => {
                                         <motion.div
                                             key={item.id}
                                             variants={itemVariants}
-                                            className="group relative bg-white rounded-[1.5rem] overflow-hidden shadow-lg hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 border border-slate-100 flex flex-row h-32 md:h-40" // Fixed height for list view consistency
+                                            className="group relative bg-white rounded-[1.5rem] overflow-hidden shadow-lg hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 border border-slate-100 flex flex-col sm:flex-row min-h-[12rem] sm:h-44 md:h-48"
                                         >
                                             {/* Thumbnail Image */}
-                                            <div className="w-32 md:w-48 shrink-0 relative overflow-hidden">
+                                            <div className="w-full h-32 sm:w-40 md:w-48 sm:h-auto shrink-0 relative overflow-hidden">
                                                 {item.image_url ? (
                                                     <img
                                                         src={item.image_url}
